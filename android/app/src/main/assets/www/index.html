@@ -56,6 +56,29 @@
   .logo-fruits .mini.spin{animation:spinpop .5s}
   @keyframes spinpop{50%{transform:rotate(180deg) scale(1.2)}}
   #preMascot{font-size:3.2rem;animation:float 3s ease-in-out infinite}
+  #splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:linear-gradient(160deg,#ff9eb3,#c9a8ff 60%,#9fe8c0);transition:opacity .45s}
+  #splash.done{opacity:0;pointer-events:none}
+  #splash .slogo{font-size:4rem;animation:float 2s ease-in-out infinite}
+  #splash h1{color:#fff;font-size:2.4rem;text-shadow:0 3px 12px rgba(0,0,0,.25)}
+  #splashBar{width:min(70vw,280px);height:14px;background:rgba(255,255,255,.4);border-radius:99px;overflow:hidden}
+  #splashFill{height:100%;width:0%;border-radius:99px;background:#fff;transition:width .15s}
+  #modal,#onboard{position:fixed;inset:0;background:rgba(91,74,104,.45);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+  #onboard{z-index:25}
+  #obDots{letter-spacing:6px;color:var(--accent);font-size:.9rem;margin-top:10px}
+  #onboard .modalcard{animation:slidein .25s}
+  @keyframes slidein{from{opacity:0;transform:translateX(30px)}}
+  #coach{position:fixed;inset:0;z-index:30;pointer-events:none}
+  .coach-bubble{position:absolute;left:50%;transform:translateX(-50%);background:#fff;color:var(--ink);font-weight:800;padding:10px 14px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:coachbob 1s infinite;pointer-events:auto;display:flex;gap:10px;align-items:center;white-space:nowrap}
+  @keyframes coachbob{50%{transform:translateX(-50%) translateY(-6px)}}
+  .coach-finger{position:absolute;font-size:2.1rem;transform:translate(-50%,-50%);animation:coachgo 1.2s infinite;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.3))}
+  @keyframes coachgo{50%{transform:translate(calc(-50% + var(--fx,0px)),calc(-50% + var(--fy,0px)))}}
+  #coachX{border:none;background:#ffe9f1;border-radius:50%;width:26px;height:26px;font-weight:900;cursor:pointer;color:var(--accent)}
+  .btn::after,.tool::after,.iconbtn::after,.tabbtn::after,.node::after{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.55),transparent 70%);opacity:0;pointer-events:none}
+  .tool,.iconbtn,.tabbtn,.node{position:relative;overflow:hidden}
+  .btn:active::after,.tool:active::after,.iconbtn:active::after,.tabbtn:active::after,.node:active::after{opacity:1;animation:ripple .45s}
+  @keyframes ripple{from{opacity:1;transform:scale(.6)}to{opacity:0;transform:scale(1.4)}}
+  .mnote{position:fixed;bottom:-30px;font-size:1.4rem;color:#a06bff;opacity:0;z-index:5;pointer-events:none;animation:mfloat 3.5s forwards}
+  @keyframes mfloat{15%{opacity:.7}100%{transform:translateY(-46vh) rotate(20deg);opacity:0}}
   .btn:active{transform:scale(.97)}
   .btn.secondary{background:#fff;color:var(--accent2);box-shadow:var(--shadow);border:2px solid #e8dcff;margin-top:10px}
   .btn.small{width:auto;padding:10px 18px;font-size:.95rem;border-radius:14px}
@@ -165,6 +188,13 @@
 <body>
 <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
 
+<!-- SPLASH -->
+<div id="splash">
+  <div class="slogo">🍎🍋🍇</div>
+  <h1>Fruits Crush</h1>
+  <div id="splashBar"><div id="splashFill"></div></div>
+</div>
+
 <!-- ACCUEIL -->
 <div class="screen" id="screen-home">
   <div class="logo">
@@ -238,7 +268,8 @@
     ✨ <b>6 alignés</b> = combo légendaire<br>
     🔥 Cascades x3, x4, x5… = combos jusqu'à l'infini !<br>
     🔄 Tous les déplacements sont permis (1 coup chacun)<br>
-    📱 Glisse le doigt • 🖱️ Clique 2 fruits
+    📱 Glisse le doigt • 🖱️ Clique 2 fruits<br>
+    <button class="btn secondary small" id="btnTuto" style="margin-top:10px">🎓 Revoir le tutoriel</button>
   </div>
   <div class="card" style="text-align:center;color:var(--ink-soft);font-weight:700">Fruits Crush v1.0 🍓</div>
 </div>
@@ -289,6 +320,20 @@
 </div>
 
 <!-- MODAL FIN -->
+<!-- ONBOARDING -->
+<div id="onboard" class="hidden">
+  <div class="modalcard">
+    <div class="big" id="obEmoji">🍎</div>
+    <h2 id="obTitle"></h2>
+    <p id="obText"></p>
+    <div id="obDots">● ○ ○</div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn secondary small" id="obSkip" style="flex:1">Passer</button>
+      <button class="btn small" id="obNext" style="flex:2">Suivant →</button>
+    </div>
+  </div>
+</div>
+
 <div id="flash"></div>
 <div id="tabbar">
   <button class="tabbtn active" id="tabHome"><span class="ico">🏠</span>Accueil</button>
@@ -376,12 +421,42 @@ if(typeof save.hammers==='undefined') save.hammers=3;
 if(typeof save.music==='undefined') save.music=1;
 if(typeof save.dark==='undefined') save.dark=0;
 if(typeof save.nextBoost==='undefined') save.nextBoost=0;
+if(typeof save.onboard==='undefined') save.onboard=0;
+if(typeof save.tutoCoach==='undefined') save.tutoCoach=0;
 
 const $=id=>document.getElementById(id);
 const boardEl=$('board'), msgEl=$('msg');
 
 function persist(){ localStorage.setItem('fruitsCrushSave', JSON.stringify(save)); }
 function show(id){ ['screen-home','screen-levels','screen-shop','screen-settings','screen-pre','screen-game'].forEach(s=>$(s).classList.add('hidden')); const el=$(id); el.classList.remove('hidden'); el.classList.remove('enter'); try{ void el.offsetWidth; }catch(e){} el.classList.add('enter'); updateTabs(id); }
+function bootSplash(){
+  const sp=$('splash'), fl=$('splashFill');
+  let p=0;
+  const iv=setInterval(()=>{
+    p=Math.min(100,p+8+Math.random()*14);
+    try{ if(fl&&fl.style) fl.style.width=p+'%'; }catch(e){}
+    if(p>=100){ clearInterval(iv);
+      setTimeout(()=>{ try{ sp.classList.add('done'); }catch(e){}
+        setTimeout(()=>{ try{ sp.remove(); }catch(e){} if(!save.onboard) showOnboard(); },450); },200);
+    }
+  },90);
+}
+const SLIDES=[
+  {e:'🍎🍎🍎',t:'Aligne 3 fruits ou plus !',d:'En lignes, en colonnes… et même en diagonales 📐'},
+  {e:'⚡🌈✨',t:'Crée des fruits spéciaux !',d:'4 = fruit rayé • 5 = bombe • 6 = combo légendaire'},
+  {e:'🔄👆',t:'Déplace librement !',d:'Chaque échange coûte 1 coup. Les matchs explosent tout seuls 💥'}
+];
+let slideI=0, obX=null;
+function showOnboard(){ slideI=0; $('onboard').classList.remove('hidden'); paintSlide(); }
+function paintSlide(){
+  const s=SLIDES[slideI];
+  $('obEmoji').textContent=s.e; $('obTitle').textContent=s.t; $('obText').textContent=s.d;
+  $('obDots').textContent=SLIDES.map((_,i)=>i===slideI?'●':'○').join(' ');
+  $('obNext').textContent=(slideI===SLIDES.length-1)?"C'est parti ! 🚀":'Suivant →';
+}
+function closeOnboard(){ save.onboard=1; persist(); $('onboard').classList.add('hidden'); }
+let noteTimer=null;
+function noteFloat(){ try{ const d=document.createElement('div'); d.className='mnote'; d.textContent=Math.random()<.5?'♪':'♫'; d.style.left=(10+Math.random()*80)+'vw'; document.body.appendChild(d); setTimeout(()=>d.remove(),3600); }catch(e){} }
 function updateTabs(id){
   const map={'screen-home':'tabHome','screen-levels':'tabLevels','screen-shop':'tabShop','screen-settings':'tabSettings','screen-pre':'tabLevels'};
   ['tabHome','tabLevels','tabShop','tabSettings'].forEach(t=>{ const el=$(t); if(el) el.classList.toggle('active', map[id]===t); });
@@ -503,6 +578,44 @@ function markSel(){
   if(selected) kids[selected.r*COLS+selected.c].classList.add('selected');
 }
 function tileEl(r,c){ return boardEl.children[r*COLS+c]; }
+function findMove(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)for(const dd of [[0,1],[1,0]]){
+    const nr=r+dd[0], nc=c+dd[1]; if(nr>=ROWS||nc>=COLS) continue;
+    swap(r,c,nr,nc); const ok=findMatches().length; swap(r,c,nr,nc);
+    if(ok) return {r,c,nr,nc};
+  }
+  return null;
+}
+let coachOn=false;
+function coachMark(){
+  if(!started||busy) return;
+  const mv=findMove(); if(!mv) return;
+  const a=tileEl(mv.r,mv.c), b=tileEl(mv.nr,mv.nc);
+  if(!a||!b||!a.getBoundingClientRect) return;
+  try{
+    const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+    if(!ra||ra.width===0) return;
+    a.classList.add('hint'); b.classList.add('hint');
+    const sx=ra.left+ra.width/2, sy=ra.top+ra.height/2;
+    const dx=Math.sign(rb.left-ra.left), dy=Math.sign(rb.top-ra.top);
+    const brd=boardEl.getBoundingClientRect();
+    const d=document.createElement('div'); d.id='coach';
+    d.innerHTML='<div class="coach-bubble">Glisse ce fruit ici !<button id="coachX">✕</button></div><div class="coach-finger">👆</div>';
+    document.body.appendChild(d);
+    const bub=d.querySelector('.coach-bubble'), fin=d.querySelector('.coach-finger');
+    if(!bub||!fin){ try{d.remove();}catch(e){} return; }
+    bub.style.top=Math.max(8,brd.top-64)+'px';
+    fin.style.left=sx+'px'; fin.style.top=sy+'px';
+    try{ fin.style.setProperty('--fx',(dx*44)+'px'); fin.style.setProperty('--fy',(dy*44)+'px'); }catch(e){}
+    const xbtn=d.querySelector('#coachX'); if(xbtn) xbtn.onclick=()=>dismissCoach();
+    coachOn=true;
+  }catch(e){}
+}
+function dismissCoach(){
+  coachOn=false;
+  try{ save.tutoCoach=1; persist(); const d=$('coach'); if(d) d.remove();
+    [...boardEl.querySelectorAll('.hint')].forEach(e=>e.classList.remove('hint')); }catch(e){}
+}
 async function slideTiles(r1,c1,r2,c2){
   const a=tileEl(r1,c1), b=tileEl(r2,c2);
   if(!a||!b) return;
@@ -593,6 +706,7 @@ function onTap(r,c){
 async function trySwap(r1,c1,r2,c2){
   if(busy||r2<0||r2>=ROWS||c2<0||c2>=COLS) return;
   busy=true; selected=null; markSel(); hammerMode=false; updateHammerBtn();
+  if(coachOn) dismissCoach();
   lastSwap=[r2,c2];
   const b1=(spec[r1]&&spec[r1][c1]&&typeof spec[r1][c1]==='object')?spec[r1][c1]:null;
   const b2=(spec[r2]&&spec[r2][c2]&&typeof spec[r2][c2]==='object')?spec[r2][c2]:null;
@@ -824,8 +938,7 @@ function beginLevel(){
   if(save.nextBoost>0){ movesLeft+=save.nextBoost; boostNote=' 🍀 +'+save.nextBoost+' coups !'; save.nextBoost=0; persist(); }
   initBoard(); show('screen-game'); render(); hideModal(); refreshSound(); updateHammerBtn();
   msg('Niveau '+n+' — '+movesLeft+' coups 🍓'+boostNote);
-  if(n===1 && !save.tuto){ save.tuto=1; persist();
-    setTimeout(()=>{ if(started&&curLevel===1&&!busy) $('btnHint').click(); },900); }
+  if(n===1 && !save.tutoCoach){ setTimeout(()=>{ if(started&&curLevel===1&&!busy) coachMark(); },900); }
 }
 async function endCheck(){
   render();
@@ -896,13 +1009,12 @@ $('btnHammer').onclick=()=>{ if(busy||!started) return;
   msg(hammerMode?'🔨 Touche un fruit à briser !':'🔨 Marteau rangé'); };
 $('btnShuffle').onclick=()=>{ if(!busy&&started){ shuffle(); render(); msg('🔀 Mélangé !'); } };
 $('btnHint').onclick=()=>{
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)for(const [dr,dc] of [[0,1],[1,0]]){
-    const nr=r+dr,nc=c+dc; if(nr>=ROWS||nc>=COLS) continue;
-    swap(r,c,nr,nc); const ok=findMatches().length; swap(r,c,nr,nc);
-    if(ok){ const h1=boardEl.children[r*COLS+c], h2=boardEl.children[nr*COLS+nc];
-      h1.classList.add('hint'); h2.classList.add('hint');
-      setTimeout(()=>{ h1.classList.remove('hint'); h2.classList.remove('hint'); },1400); return; }
-  }
+  const mv=findMove();
+  if(!mv){ msg('😅 Aucun coup visible, mélange !'); return; }
+  const h1=boardEl.children[mv.r*COLS+mv.c], h2=boardEl.children[mv.nr*COLS+mv.nc];
+  if(!h1||!h2) return;
+  h1.classList.add('hint'); h2.classList.add('hint');
+  setTimeout(()=>{ try{ h1.classList.remove('hint'); h2.classList.remove('hint'); }catch(e){} },1400);
 };
 $('setSound').onclick=()=>{ save.sound=save.sound?0:1; persist(); refreshSound(); refreshHomeToggles(); tone(700,.1); };
 $('setMusic').onclick=()=>{ save.music=save.music?0:1; persist(); refreshHomeToggles(); };
@@ -922,12 +1034,24 @@ $('buyBoost').onclick=()=>{
 $('btnPreBack').onclick=()=>{ buildLevels(); show('screen-levels'); };
 $('btnGo').onclick=()=>{ startMusic(); beginLevel(); };
 $('btnBuyHammer').onclick=()=>buyHammer();
+$('obNext').onclick=()=>{ tone(700,.1); if(slideI<SLIDES.length-1){ slideI++; paintSlide(); } else closeOnboard(); };
+$('obSkip').onclick=()=>closeOnboard();
+$('onboard').addEventListener('pointerdown',e=>{ obX=e.clientX; });
+$('onboard').addEventListener('pointerup',e=>{
+  if(obX===null) return; const dx=e.clientX-obX; obX=null;
+  if(Math.abs(dx)<30) return;
+  if(dx<0){ $('obNext').click(); }
+  else if(slideI>0){ slideI--; paintSlide(); tone(500,.08); }
+});
+$('btnTuto').onclick=()=>showOnboard();
 document.addEventListener('pointerdown',()=>startMusic(),{once:true});
 $('mBtnRetry').onclick=()=>beginLevel();
 $('mBtnMap').onclick=()=>{ hideModal(); buildLevels(); show('screen-levels'); };
 $('mBtnNext').onclick=()=>startLevel(Math.min(50,curLevel+1));
 
 refreshHome(); refreshHomeToggles(); applyTheme(); buildLevels(); updateTabs('screen-home');
+bootSplash();
+if(!noteTimer) noteTimer=setInterval(()=>{ if(!save.music||!save.sound) return; if(document.hidden) return; noteFloat(); },2600);
 </script>
 </body>
 </html>
