@@ -10,7 +10,39 @@
     --pink:#ffd6e0; --pink2:#ffb3c7; --lav:#d9c7ff; --mint:#c7f2d9;
     --peach:#ffe8c7; --sky:#c7e6ff; --ink:#5b4a68; --ink-soft:#8a7a99;
     --card:#fff7fa; --accent:#ff6b9d; --accent2:#a06bff;
+    --btna:#ff7eb3; --btnb:#ff5d8f; --btnc:#a06bff;
     --shadow:0 10px 30px rgba(160,107,255,.18), 0 4px 12px rgba(255,107,157,.12);
+  }
+  body[data-theme="1"]:not(.dark){--accent:#2e9eeb;--accent2:#7b5cff;--btna:#4ecdc4;--btnb:#2e9eeb;--btnc:#7b5cff;background:linear-gradient(180deg,#eaf7ff 0%,#d6ecff 50%,#e6f7f0 100%)}
+  body[data-theme="2"]:not(.dark){--accent:#ff7e5f;--accent2:#a06bff;--btna:#ffb35c;--btnb:#ff7e5f;--btnc:#c94b7a;background:linear-gradient(180deg,#fff6ec 0%,#ffe8d6 50%,#ffe3ec 100%)}
+  #toast{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-90px);background:#fff;color:var(--ink);font-weight:800;padding:12px 18px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:80;transition:transform .3s;max-width:92vw;text-align:center}
+  #toast.show{transform:translate(-50%,0)}
+  body.dark #toast{background:#3a2f4d;color:#f2e9f5}
+  .achgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  .ach{aspect-ratio:1;background:#fff;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:var(--shadow);padding:4px}
+  .ach small{font-size:.55rem;font-weight:800;color:var(--ink-soft);text-align:center;line-height:1.2}
+  .ach.locked{filter:grayscale(1);opacity:.45;box-shadow:none}
+  body.dark .ach{background:rgba(56,45,75,.92)}
+  .recaprow{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:.9rem}
+  .recapbar{flex:1;height:10px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden}
+  .recapbar div{height:100%;background:linear-gradient(90deg,var(--btna),var(--btnc));border-radius:99px}
+  .specbadge.fresh{outline:2px solid #ffd166;box-shadow:0 0 14px #ffd166;animation:freshpulse 1s infinite}
+  .specbadge.fresh::before{content:'NEW';position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:.5rem;font-weight:900;background:#ffd166;color:#5b4a68;border-radius:6px;padding:1px 5px}
+  @keyframes freshpulse{50%{transform:scale(1.25)}}
+  body.perf *{backdrop-filter:none!important}
+  body.perf .tile{box-shadow:none!important}
+  body.perf .tile::after,body.perf .btn::before{display:none!important}
+  body.perf #board.shake,body.perf .tile.fall,body.perf .tile.spawn,body.perf .specbadge.bomb,body.perf .specbadge.fresh,body.perf .logo-fruits .mini{animation:none!important}
+  body.perf .particle,body.perf .confetti,body.perf .mnote{display:none!important}
+  @media (orientation:landscape) and (max-height:540px){
+    #screen-game{width:96vw;display:grid;grid-template-columns:auto 180px;gap:6px 12px;justify-content:center}
+    #screen-game .topbar{grid-column:1/-1;margin-top:6px}
+    #screen-game #board{grid-column:1;grid-row:2/span 4;width:auto;height:calc(100vh - 150px);margin-top:0}
+    #screen-game #hud{grid-column:2;grid-row:2;flex-direction:column;margin-top:0}
+    #screen-game #goalbar{grid-column:2;grid-row:3}
+    #screen-game #msg{grid-column:2;grid-row:4;min-height:20px;font-size:.85rem}
+    #screen-game #goalText{grid-column:2;grid-row:4;display:none}
+    #screen-game #toolbar{grid-column:2;grid-row:5;flex-direction:column}
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
@@ -40,7 +72,7 @@
   h1.title{font-size:2.2rem;font-weight:900;letter-spacing:.5px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
   .subtitle{color:var(--ink-soft);font-weight:600;margin-top:2px}
   .card{background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-radius:24px;padding:20px;width:100%;box-shadow:var(--shadow);border:1.5px solid rgba(255,255,255,.9);margin-top:16px}
-  .btn{border:none;border-radius:18px;padding:15px 20px;font-size:1.05rem;font-weight:900;cursor:pointer;width:100%;transition:transform .12s;color:#fff;background:linear-gradient(135deg,#ff7eb3,#ff5d8f 40%,#a06bff);box-shadow:0 8px 20px rgba(255,93,143,.35);letter-spacing:.3px;position:relative;overflow:hidden}
+  .btn{border:none;border-radius:18px;padding:15px 20px;font-size:1.05rem;font-weight:900;cursor:pointer;width:100%;transition:transform .12s;color:#fff;background:linear-gradient(135deg,var(--btna),var(--btnb) 40%,var(--btnc));box-shadow:0 8px 20px rgba(255,93,143,.35);letter-spacing:.3px;position:relative;overflow:hidden}
   .btn::before{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);animation:shine 2.8s infinite;pointer-events:none}
   @keyframes shine{0%{left:-60%}60%,100%{left:130%}}
   .screen.enter{animation:screenin .25s}
@@ -246,6 +278,16 @@
     <div style="flex:1"><b>Boost +3 coups</b><br><small style="color:var(--ink-soft)">Pour ton prochain niveau</small></div>
     <button class="btn small" id="buyBoost" style="width:auto">50 🪙</button>
   </div>
+  <div class="card shopitem">
+    <div style="font-size:2rem">🌊</div>
+    <div style="flex:1"><b>Thème Océan</b><br><small style="color:var(--ink-soft)">Bleus frais et vagues douces</small></div>
+    <button class="btn small" id="thB1" style="width:auto">150 🪙</button>
+  </div>
+  <div class="card shopitem">
+    <div style="font-size:2rem">🌅</div>
+    <div style="flex:1"><b>Thème Sunset</b><br><small style="color:var(--ink-soft)">Orange coucher de soleil</small></div>
+    <button class="btn small" id="thB2" style="width:auto">150 🪙</button>
+  </div>
   <div class="card" style="margin-top:12px;text-align:center;font-weight:700">🔨 En stock : <span id="shopHammers">0</span><br><span id="shopBoostState" style="color:var(--ink-soft)"></span><br><small style="color:var(--ink-soft)">Gagne des 🪙 en terminant des niveaux !</small></div>
 </div>
 
@@ -257,9 +299,12 @@
   <div class="card">
     <button class="btn secondary" id="setSound">🔊 Son</button>
     <button class="btn secondary" id="setMusic">🎵 Musique</button>
+    <button class="btn secondary" id="setVib">📳 Vibrations</button>
     <button class="btn secondary" id="setDark">🌙 Sombre</button>
+    <button class="btn secondary" id="setPerf">🚀 Mode Performance</button>
     <button class="btn secondary" id="btnReset" style="color:#ff3d71;border-color:#ffc9da">🗑️ Réinitialiser la progression</button>
   </div>
+  <div class="card"><b>🏆 Succès</b><div id="achGrid" class="achgrid"></div></div>
   <div class="card" style="font-size:.92rem;line-height:1.7">
     <b>❓ Comment jouer</b><br>
     🍎 Aligne <b>3 fruits ou +</b> : lignes, colonnes <b>et diagonales</b><br>
@@ -315,6 +360,7 @@
   <div id="toolbar">
     <button class="tool" id="btnHint">💡 Indice</button>
     <button class="tool" id="btnHammer">🔨 <span id="hammerCount">3</span></button>
+    <button class="tool" id="btnGoal">❓</button>
     <button class="tool" id="btnShuffle">🔀 Mélanger</button>
   </div>
 </div>
@@ -334,6 +380,7 @@
   </div>
 </div>
 
+<div id="toast"></div>
 <div id="flash"></div>
 <div id="tabbar">
   <button class="tabbtn active" id="tabHome"><span class="ico">🏠</span>Accueil</button>
@@ -348,11 +395,15 @@
     <h2 id="mTitle">Niveau réussi !</h2>
     <div class="stars" id="mStars">⭐⭐⭐</div>
     <p id="mText"></p>
+    <div id="mRecap"></div>
     <div class="row" style="margin-top:14px">
       <button class="btn secondary small" id="mBtnMap" style="flex:1">🗺️ Carte</button>
       <button class="btn small" id="mBtnNext" style="flex:2">Suivant →</button>
     </div>
-    <button class="btn secondary small" id="mBtnRetry" style="width:100%">↻ Rejouer</button>
+    <div class="row" style="margin-top:10px">
+      <button class="btn secondary small" id="mBtnShare" style="flex:1">📤 Partager</button>
+      <button class="btn secondary small" id="mBtnRetry" style="flex:1">↻ Rejouer</button>
+    </div>
   </div>
 </div>
 
@@ -397,6 +448,45 @@ const WORLDS=[
   {n:5,name:'Paradis Pastèque',icon:'🍉'}
 ];
 function worldOf(n){ return WORLDS[Math.min(4,Math.floor((n-1)/10))]; }
+const ACHS=[
+  {id:'bomb1',icon:'🌈',name:'Première bombe !',d:'Crée une bombe de couleur'},
+  {id:'strip1',icon:'⚡',name:'Fruit rayé !',d:'Crée un fruit rayé'},
+  {id:'combo5',icon:'🔥',name:'Combo x5 !',d:'Cascade x5 ou plus'},
+  {id:'combo10',icon:'🌈',name:'Combo x10 !!',d:'Cascade x10 ou plus'},
+  {id:'fruits1000',icon:'🍎',name:'1000 fruits !',d:'Éclate 1000 fruits au total'},
+  {id:'stars25',icon:'⭐',name:'25 étoiles !',d:'Gagne 25 étoiles'},
+  {id:'world1',icon:'🌸',name:'Monde 1 terminé !',d:'Finis les 10 premiers niveaux'},
+  {id:'rich',icon:'🪙',name:'Riche !',d:'Possède 200 pièces'}
+];
+const THEMES=[{name:'Rose (défaut)',cost:0},{name:'Océan',cost:150},{name:'Coucher de soleil',cost:150}];
+let newRecord=false, winSuffix='';
+function checkRecord(){ newRecord = score>0 && score>(save.best[curLevel]||0); if(newRecord) save.best[curLevel]=score; return newRecord; }
+function checkAchs(){
+  const totalStars=Object.values(save.stars).reduce((a,b)=>a+b,0);
+  if(totalStars>=25) unlockAch('stars25');
+  if((save.statFruits||0)>=1000) unlockAch('fruits1000');
+  if(save.unlocked>10) unlockAch('world1');
+  if((save.coins||0)>=200) unlockAch('rich');
+}
+function unlockAch(id){
+  save.ach=save.ach||{};
+  if(save.ach[id]) return;
+  save.ach[id]=1; persist();
+  const a=ACHS.find(x=>x.id===id);
+  if(a){ showToast(a.icon+' <b>'+a.name+'</b> — '+a.d); tone(880,.2); setTimeout(()=>tone(1174,.25),150); }
+}
+function showToast(t){ try{ const el=$('toast'); el.innerHTML=t; el.classList.add('show'); clearTimeout(showToast._t); showToast._t=setTimeout(()=>el.classList.remove('show'),2300); }catch(e){} }
+function updateAchUI(){ const g=$('achGrid'); if(!g) return;
+  g.innerHTML=ACHS.map(a=>{ const un=save.ach&&save.ach[a.id];
+    return `<div class="ach${un?'':' locked'}" title="${a.d}">${a.icon}<small>${a.name}</small></div>`; }).join('');
+}
+function buildRecap(){
+  try{
+    const vals=Object.values(collected), max=Math.max(1,...vals);
+    $('mRecap').innerHTML=FRUITS.map((F,i)=>{ const n=collected[i]||0; if(!n) return '';
+      return `<div class="recaprow"><span class="minifruit">${F.svg}</span><div class="recapbar"><div style="width:${Math.round(n/max*100)}%"></div></div><b>${n}</b></div>`; }).join('');
+  }catch(e){}
+}
 function goalMet(L){ if(L.type==='collect') return (collected[L.fruit]||0)>=L.count; if(L.type==='explode') return explosions>=L.count; return score>=L.target; }
 function goalProg(L){ if(L.type==='collect') return {cur:Math.min(collected[L.fruit]||0,L.count),max:L.count}; if(L.type==='explode') return {cur:Math.min(explosions,L.count),max:L.count}; return {cur:score,max:L.s3}; }
 function goalText(L){ if(L.type==='collect') return 'Collecte <b>'+L.count+'</b> <span class="minifruit">'+FRUITS[L.fruit].svg+'</span> '+FRUITS[L.fruit].name+'s'; if(L.type==='explode') return 'Provoque <b>'+L.count+'</b> explosions 💥'; return 'Atteins <b>'+L.target+'</b> pts 🎯'; }
@@ -405,6 +495,7 @@ function goalText(L){ if(L.type==='collect') return 'Collecte <b>'+L.count+'</b>
 const ROWS=8, COLS=8;
 let board=[], spec=[], score=0, movesLeft=0, curLevel=1, colors=6, busy=false, selected=null, started=false;
 let collected={}, explosions=0, lastSwap=null, hammerMode=false, pendingDrops=null, lastEarned=0, maxCombo=0;
+let freshSpecs=new Set();
 function comboBonus(combo){ return combo>=3 ? (combo-2)*100 : 0; }
 function comboText(combo,gain){
   if(combo>=5) return `🌈 COMBO EXTRÊME x${combo} +${gain} !`;
@@ -421,6 +512,14 @@ if(typeof save.hammers==='undefined') save.hammers=3;
 if(typeof save.music==='undefined') save.music=1;
 if(typeof save.dark==='undefined') save.dark=0;
 if(typeof save.nextBoost==='undefined') save.nextBoost=0;
+if(typeof save.best==='undefined') save.best={};
+if(typeof save.ach==='undefined') save.ach={};
+if(typeof save.statFruits==='undefined') save.statFruits=0;
+if(typeof save.bestComboEver==='undefined') save.bestComboEver=0;
+if(typeof save.vib==='undefined') save.vib=1;
+if(typeof save.perf==='undefined') save.perf=0;
+if(typeof save.theme==='undefined') save.theme=0;
+if(typeof save.themesOwned==='undefined') save.themesOwned=[true,false,false];
 if(typeof save.onboard==='undefined') save.onboard=0;
 if(typeof save.tutoCoach==='undefined') save.tutoCoach=0;
 
@@ -456,7 +555,7 @@ function paintSlide(){
 }
 function closeOnboard(){ save.onboard=1; persist(); $('onboard').classList.add('hidden'); }
 let noteTimer=null;
-function noteFloat(){ try{ const d=document.createElement('div'); d.className='mnote'; d.textContent=Math.random()<.5?'♪':'♫'; d.style.left=(10+Math.random()*80)+'vw'; document.body.appendChild(d); setTimeout(()=>d.remove(),3600); }catch(e){} }
+function noteFloat(){ try{ if(document.body.classList.contains('perf')) return; const d=document.createElement('div'); d.className='mnote'; d.textContent=Math.random()<.5?'♪':'♫'; d.style.left=(10+Math.random()*80)+'vw'; document.body.appendChild(d); setTimeout(()=>d.remove(),3600); }catch(e){} }
 function updateTabs(id){
   const map={'screen-home':'tabHome','screen-levels':'tabLevels','screen-shop':'tabShop','screen-settings':'tabSettings','screen-pre':'tabLevels'};
   ['tabHome','tabLevels','tabShop','tabSettings'].forEach(t=>{ const el=$(t); if(el) el.classList.toggle('active', map[id]===t); });
@@ -468,6 +567,7 @@ function goTab(id){
   if(id==='screen-levels') buildLevels();
   else setWorldTheme(-1);
   if(id==='screen-shop') updateShop();
+  if(id==='screen-settings'){ updateAchUI(); refreshHomeToggles(); }
   if(id==='screen-home') refreshHome();
   show(id);
 }
@@ -475,9 +575,30 @@ function updateShop(){
   $('shopCoins').textContent=save.coins||0;
   $('shopHammers').textContent=save.hammers||0;
   $('shopBoostState').textContent=save.nextBoost?('🍀 Boost +'+save.nextBoost+' coups actif pour le prochain niveau !'):'Aucun boost actif';
+  const b1=$('thB1'), b2=$('thB2');
+  if(b1) b1.textContent=save.theme===1?'✔ Choisi':((save.themesOwned&&save.themesOwned[1])?'Choisir':'150 🪙');
+  if(b2) b2.textContent=save.theme===2?'✔ Choisi':((save.themesOwned&&save.themesOwned[2])?'Choisir':'150 🪙');
 }
 function shopMsg(t){ $('shopMsg').textContent=t; }
+function askBuy(t){ try{ return (typeof confirm!=='function')?true:confirm(t); }catch(e){ return true; } }
+async function shareScore(){
+  const t=`🍓 J'ai fait ${score} pts (niveau ${curLevel}, combo max x${maxCombo}) dans Fruits Crush ! Viens jouer 🍎`;
+  try{
+    if(typeof navigator!=='undefined'&&navigator.share){ await navigator.share({title:'Fruits Crush',text:t}); }
+    else if(typeof navigator!=='undefined'&&navigator.clipboard&&navigator.clipboard.writeText){ await navigator.clipboard.writeText(t); showToast('✅ Score copié ! Colle-le où tu veux 📋'); }
+    else showToast('📋 '+t);
+  }catch(e){}
+}
+function goalTextPlain(L){ if(L.type==='collect') return '🎯 Collecte '+(collected[L.fruit]||0)+'/'+L.count+' '+FRUITS[L.fruit].name+'s'; if(L.type==='explode') return '🎯 Explosions : '+Math.min(explosions,L.count)+'/'+L.count; return '🎯 Objectif : '+L.target+' pts'; }
+function buyTheme(i){
+  save.themesOwned=save.themesOwned||[true,false,false];
+  if(save.themesOwned[i]){ save.theme=i; persist(); applyTheme(); updateShop(); tone(700,.1); return; }
+  if(!askBuy('Débloquer le thème '+THEMES[i].name+' pour 150 🪙 ?')) return;
+  if((save.coins||0)>=150){ save.coins-=150; save.themesOwned[i]=true; save.theme=i; persist(); applyTheme(); updateShop(); shopMsg('✅ Thème débloqué !'); tone(880,.12); }
+  else { shopMsg('🪙 Pas assez de pièces !'); tone(200,.2,'sawtooth',.07); }
+}
 function buyHammer(n,cost){
+  if(!askBuy('Acheter '+(n>1?n+' marteaux':'1 marteau')+' pour '+cost+' 🪙 ?')) return;
   if((save.coins||0)>=cost){ save.coins-=cost; save.hammers=(save.hammers||0)+n; persist(); updateShop(); updateHammerBtn(); shopMsg('✅ Acheté ! Bonne chance 🍓'); tone(880,.12); }
   else { shopMsg('🪙 Pas assez de pièces ! Termine des niveaux.'); tone(200,.2,'sawtooth',.07); }
 }
@@ -507,7 +628,7 @@ function musicStep(){ if(!save.music||!save.sound) return; const f=MELODY[mi%MEL
 function startMusic(){ if(musicTimer) return; try{ musicTimer=setInterval(musicStep,430); }catch(e){} }
 const sBad=()=>tone(180,.25,'sawtooth',.06);
 const sWin=()=>[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.25,'sine',.14),i*130));
-function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+function buzz(p){ try{ if(save.vib&&navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 
 /* ===== BOARD ===== */
 function newFruitAvoid(r,c){
@@ -534,7 +655,9 @@ function render(){
     const spt=spec[r][c];
     if(spt){ const bdg=document.createElement('div'); const isB=(typeof spt==='object');
       bdg.className='specbadge '+(isB?'bomb':(spt==='H'?'spech':'specv'));
-      bdg.textContent=isB?'🌈':'⚡'; d.appendChild(bdg); }
+      bdg.textContent=isB?'🌈':'⚡';
+      if(freshSpecs.has(r+','+c)) bdg.classList.add('fresh');
+      d.appendChild(bdg); }
     d.dataset.r=r;d.dataset.c=c;
     d.addEventListener('pointerdown',e=>{ ts={r,c,x:e.clientX,y:e.clientY}; });
     d.addEventListener('click',()=>onTap(r,c));
@@ -630,6 +753,7 @@ function shakeBoard(){ try{ boardEl.classList.remove('shake'); void boardEl.offs
 function flash(op){ try{ const f=$('flash'); if(!f||!f.style) return; f.style.opacity=op||.55; setTimeout(()=>{ try{f.style.opacity=0;}catch(e){} },120); }catch(e){} }
 function burst(cells,count){
   try{
+    if(document.body.classList.contains('perf')) return;
     if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const br=boardEl.getBoundingClientRect();
     let sx=0,sy=0,n=0;
@@ -650,6 +774,7 @@ function burst(cells,count){
 }
 function confetti(){
   try{
+    if(document.body.classList.contains('perf')) return;
     if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const cols=['#ff6b9d','#ffd166','#a06bff','#6fbf73','#4ecdc4'];
     for(let i=0;i<40;i++){
@@ -794,9 +919,10 @@ async function resolve(first){
       if(seen.has(lk)){
         const f=board[lastSwap[0]][lastSwap[1]];
         if(f>=0 && f<colors && !spec[lastSwap[0]][lastSwap[1]]){
-          if(maxL>=6){ spec[lastSwap[0]][lastSwap[1]]={bomb:f}; bonus=400; created=lk; legendColor=f; }
-          else if(maxL>=5){ spec[lastSwap[0]][lastSwap[1]]={bomb:f}; bonus=250; created=lk; }
-          else { spec[lastSwap[0]][lastSwap[1]]=(Math.random()<.5?'H':'V'); bonus=100; created=lk; }
+          if(maxL>=6){ spec[lastSwap[0]][lastSwap[1]]={bomb:f}; bonus=400; created=lk; legendColor=f; unlockAch('bomb1'); }
+          else if(maxL>=5){ spec[lastSwap[0]][lastSwap[1]]={bomb:f}; bonus=250; created=lk; unlockAch('bomb1'); }
+          else { spec[lastSwap[0]][lastSwap[1]]=(Math.random()<.5?'H':'V'); bonus=100; created=lk; unlockAch('strip1'); }
+          freshSpecs.add(lk); setTimeout(()=>freshSpecs.delete(lk),4000);
         }
       }
     }
@@ -809,6 +935,8 @@ async function resolve(first){
     }
     let gain=uniq.length*10*combo+bonus+comboBonus(combo), extra='';
     if(combo>maxCombo) maxCombo=combo;
+    if(combo>=5) unlockAch('combo5');
+    if(combo>=10) unlockAch('combo10');
     if(created){ extra=(maxL>=6?'🌈✨ LÉGENDAIRE x6 +':(maxL>=5?'🌈 Bombe créée +':'⚡ Fruit rayé créé +'))+gain; sWin(); }
     else if(maxL>=6){ gain+=500; extra='🌈✨ EXPLOSION LÉGENDAIRE +'+gain; sWin();
       const p0=uniq[0].split(','), col=board[+p0[0]][+p0[1]];
@@ -879,12 +1007,14 @@ function refreshHome(){
   $('st-done').textContent=Object.keys(save.stars).length+'/50';
   refreshHomeToggles();
 }
-function applyTheme(){ document.body.classList.toggle('dark',!!save.dark); }
+function applyTheme(){ try{ document.body.classList.toggle('dark',!!save.dark); document.body.classList.toggle('perf',!!save.perf); document.body.setAttribute('data-theme',save.theme||0); }catch(e){} }
 function refreshHomeToggles(){
   if(!$('setSound')) return;
   $('setSound').textContent=save.sound?'🔊 Son : ON':'🔇 Son : OFF';
   $('setMusic').textContent=save.music?'🎵 Musique : ON':'🚫 Musique : OFF';
   $('setDark').textContent=save.dark?'☀️ Thème clair':'🌙 Thème sombre';
+  $('setVib').textContent=save.vib?'📳 Vibrations : ON':'🚫 Vibrations : OFF';
+  $('setPerf').textContent=save.perf?'🚀 Performance : ON':'🚀 Performance : OFF';
 }
 function setWorldTheme(w){ try{ if(w===undefined||w===null||w<0) document.body.removeAttribute('data-world'); else document.body.setAttribute('data-world',w); }catch(e){} }
 function worldStars(w){ let t=0; for(let i=w*10+1;i<=w*10+10;i++) t+=save.stars[i]||0; return t; }
@@ -917,8 +1047,8 @@ function updatePre(){
   $('preMascot').textContent=W.icon;
   $('preNum').textContent='Niveau '+curLevel;
   $('preGoal').innerHTML=goalText(L);
-  const st=save.stars[curLevel]||0;
-  $('preBest').textContent=st?('Record : '+'⭐'.repeat(st)):'Pas encore terminé';
+  const st=save.stars[curLevel]||0, bst=save.best[curLevel]||0;
+  $('preBest').textContent=(st||bst)?('Record : '+bst+' pts'+(st?(' • '+'⭐'.repeat(st)):'')):'Pas encore terminé';
   $('preCoins').textContent=save.coins||0;
   $('preHammers').textContent=save.hammers||0;
   $('preBoost').textContent=save.nextBoost?('🍀 Boost +'+save.nextBoost+' coups pour cette partie !'):'';
@@ -933,7 +1063,7 @@ function startLevel(n){
 function beginLevel(){
   const n=curLevel, L=LEVELS[n-1];
   colors=L.colors; score=0; movesLeft=L.moves; selected=null; busy=false; started=true;
-  collected={}; explosions=0; hammerMode=false; lastSwap=null; maxCombo=0;
+  collected={}; explosions=0; hammerMode=false; lastSwap=null; maxCombo=0; newRecord=false;
   let boostNote='';
   if(save.nextBoost>0){ movesLeft+=save.nextBoost; boostNote=' 🍀 +'+save.nextBoost+' coups !'; save.nextBoost=0; persist(); }
   initBoard(); show('screen-game'); render(); hideModal(); refreshSound(); updateHammerBtn();
@@ -955,10 +1085,19 @@ async function endCheck(){
     save.stars[curLevel]=Math.max(save.stars[curLevel]||0,stars);
     if(curLevel<50) save.unlocked=Math.max(save.unlocked,curLevel+1);
     lastEarned=stars*10; save.coins=(save.coins||0)+lastEarned; save.hammers=(save.hammers||0)+1;
+    checkRecord();
+    save.statFruits=(save.statFruits||0)+Object.values(collected).reduce((a,b)=>a+b,0);
+    save.bestComboEver=Math.max(save.bestComboEver||0,maxCombo);
+    checkAchs();
     persist(); refreshHome(); buildLevels();
     setTimeout(()=>showModal(true,stars),450);
   } else if(movesLeft<=0){
     started=false;
+    checkRecord();
+    save.statFruits=(save.statFruits||0)+Object.values(collected).reduce((a,b)=>a+b,0);
+    save.bestComboEver=Math.max(save.bestComboEver||0,maxCombo);
+    checkAchs();
+    persist();
     setTimeout(()=>showModal(false,0),450);
   }
 }
@@ -972,7 +1111,7 @@ function animWin(stars,finalScore){
   setTimeout(step,450);
   const t0=Date.now();
   const tick=()=>{ const p=Math.min(1,(Date.now()-t0)/900), v=Math.round(finalScore*p);
-    try{ $('mText').textContent='Score : '+v+' pts • +'+lastEarned+' 🪙, +1 🔨'+(maxCombo>=2?' • Combo max x'+maxCombo:''); }catch(e){}
+    try{ $('mText').textContent=(newRecord?'🎉 RECORD ! ':'')+'Score : '+v+' pts • +'+lastEarned+' 🪙, +1 🔨'+(maxCombo>=2?' • Combo max x'+maxCombo:'')+winSuffix; }catch(e){}
     if(p<1) setTimeout(tick,30); };
   tick();
 }
@@ -981,8 +1120,12 @@ function showModal(win,stars){
   $('mEmoji').textContent=win?(stars===3?'🌟':'🎉'):'😢';
   const champion = win && curLevel===50;
   $('mTitle').textContent=champion?'🏆 Champion ! 50/50 !':(win?`Niveau ${curLevel} réussi !`:'Raté… réessaie ! 💪');
-  if(win){ animWin(stars,score); }
-  else { $('mStars').textContent='☆☆☆'; $('mText').textContent=`Score : ${score} — objectif non atteint`; }
+  if(win){
+    winSuffix = champion ? (` • 🏆 ${(Object.values(save.stars).reduce((a,b)=>a+b,0))} ⭐ • ${save.statFruits||0} fruits • combo x${save.bestComboEver||0}`) : '';
+    animWin(stars,score);
+  }
+  else { $('mStars').textContent='☆☆☆'; $('mText').textContent=`Score : ${score} — objectif non atteint`+(newRecord?' 🎉 Nouveau record !':''); }
+  buildRecap();
   $('mBtnNext').style.display=(win&&curLevel<50)?'':'none';
 }
 function hideModal(){ $('modal').classList.add('hidden'); }
@@ -1019,6 +1162,12 @@ $('btnHint').onclick=()=>{
 $('setSound').onclick=()=>{ save.sound=save.sound?0:1; persist(); refreshSound(); refreshHomeToggles(); tone(700,.1); };
 $('setMusic').onclick=()=>{ save.music=save.music?0:1; persist(); refreshHomeToggles(); };
 $('setDark').onclick=()=>{ save.dark=save.dark?0:1; persist(); applyTheme(); refreshHomeToggles(); };
+$('setVib').onclick=()=>{ save.vib=save.vib?0:1; persist(); refreshHomeToggles(); buzz(40); };
+$('setPerf').onclick=()=>{ save.perf=save.perf?0:1; persist(); applyTheme(); refreshHomeToggles(); };
+$('thB1').onclick=()=>buyTheme(1);
+$('thB2').onclick=()=>buyTheme(2);
+$('mBtnShare').onclick=()=>shareScore();
+$('btnGoal').onclick=()=>{ if(!started||busy) return; msg(goalTextPlain(LEVELS[curLevel-1])); tone(600,.08); };
 $('btnReset').onclick=()=>{ if(confirm('Effacer toute la progression (niveaux, étoiles, pièces) ?')){ try{ localStorage.removeItem('fruitsCrushSave'); }catch(e){} location.reload(); } };
 $('tabHome').onclick=()=>goTab('screen-home');
 $('tabLevels').onclick=()=>goTab('screen-levels');
@@ -1028,6 +1177,7 @@ $('buyH1').onclick=()=>buyHammer(1,30);
 $('buyH5').onclick=()=>buyHammer(5,120);
 $('buyBoost').onclick=()=>{
   if(save.nextBoost){ shopMsg('🍀 Boost déjà actif !'); return; }
+  if(!askBuy('Activer le boost +3 coups pour 50 🪙 ?')) return;
   if((save.coins||0)>=50){ save.coins-=50; save.nextBoost=3; persist(); updateShop(); shopMsg('✅ Boost activé pour le prochain niveau !'); tone(880,.12); }
   else { shopMsg('🪙 Pas assez de pièces ! Termine des niveaux.'); tone(200,.2,'sawtooth',.07); }
 };
