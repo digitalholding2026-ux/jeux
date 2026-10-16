@@ -139,9 +139,10 @@
     </div>
   </div>
   <div class="card" style="font-size:.92rem;line-height:1.6">
-    🍎 Aligne <b>3 fruits ou +</b> pour marquer<br>
-    🍋 <b>4 alignés</b> = explosion gourmande<br>
-    🍇 <b>5 alignés</b> = super explosion<br>
+    🍎 Aligne <b>3 fruits ou +</b> : lignes, colonnes <b>et diagonales</b> 📐<br>
+    ⚡ <b>4 alignés</b> = fruit rayé (garde-le !)<br>
+    🌈 <b>5 alignés</b> = bombe de couleur<br>
+    ✨ <b>6 alignés</b> = combo légendaire<br>
     📱 Glisse le doigt • 🖱️ Clique 2 fruits
   </div>
 </div>
@@ -240,9 +241,9 @@ for(let i=1;i<=50;i++){
   const moves = Math.max(16, 28 - Math.floor(i/6));
   const type = i%3===1 ? 'collect' : (i%3===2 ? 'explode' : 'score');
   let target, count=0, fruit=0;
-  if(type==='collect'){ fruit=i%colors; count=10+Math.floor(i*0.8); target=count*30; }
+  if(type==='collect'){ fruit=i%colors; count=14+i; target=count*30; }
   else if(type==='explode'){ count=1+Math.floor(i/12); target=count*350; }
-  else { target=700 + i*220 + Math.floor(i/10)*300; }
+  else { target=2000 + i*650 + Math.floor(i/10)*900; }
   LEVELS.push({n:i, type, target, moves, colors, count, fruit,
     s2: Math.round(target*1.45), s3: Math.round(target*1.9)});
 }
@@ -458,15 +459,22 @@ async function trySwap(r1,c1,r2,c2){
 }
 
 function findMatches(){
+  // 4 sens : horizontal, vertical et 2 diagonales — matchs de 3 à 6+
   const s=new Set();
-  for(let r=0;r<ROWS;r++){ let n=1;
-    for(let c=1;c<=COLS;c++){
-      if(c<COLS&&board[r][c]===board[r][c-1]) n++;
-      else{ if(n>=3) for(let k=c-n;k<c;k++) s.add(r+','+k+'|'+n); n=1; } } }
-  for(let c=0;c<COLS;c++){ let n=1;
-    for(let r=1;r<=ROWS;r++){
-      if(r<ROWS&&board[r][c]===board[r-1][c]) n++;
-      else{ if(n>=3) for(let k=r-n;k<r;k++) s.add(k+','+c+'|'+n); n=1; } } }
+  const DIRS=[[0,1],[1,0],[1,1],[1,-1]];
+  for(const dd of DIRS){
+    const dr=dd[0], dc=dd[1];
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const v=board[r][c];
+      if(v<0) continue;
+      const pr=r-dr, pc=c-dc;
+      if(pr>=0&&pr<ROWS&&pc>=0&&pc<COLS&&board[pr][pc]===v) continue; // pas un début de série
+      let n=1;
+      while(true){ const nr=r+dr*n, nc=c+dc*n;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS||board[nr][nc]!==v) break; n++; }
+      if(n>=3) for(let k=0;k<n;k++) s.add((r+dr*k)+','+(c+dc*k)+'|'+n);
+    }
+  }
   return [...s];
 }
 
@@ -492,22 +500,33 @@ async function resolve(first){
       }
     }
     cells=[...seen];
-    // création d'un spécial sur la case jouée (match 4/5)
-    let created=null, bonus=0;
+    // création d'un spécial sur la case jouée (match 4/5/6)
+    let created=null, bonus=0, legendColor=-1;
     if(maxL>=4 && lastSwap){
       const lk=lastSwap[0]+','+lastSwap[1];
       if(seen.has(lk)){
         const f=board[lastSwap[0]][lastSwap[1]];
         if(f>=0 && f<colors && !spec[lastSwap[0]][lastSwap[1]]){
-          if(maxL>=5){ spec[lastSwap[0]][lastSwap[1]]={bomb:f}; bonus=250; created=lk; }
+          if(maxL>=6){ spec[lastSwap[0]][lastSwap[1]]={bomb:f}; bonus=400; created=lk; legendColor=f; }
+          else if(maxL>=5){ spec[lastSwap[0]][lastSwap[1]]={bomb:f}; bonus=250; created=lk; }
           else { spec[lastSwap[0]][lastSwap[1]]=(Math.random()<.5?'H':'V'); bonus=100; created=lk; }
         }
       }
     }
     if(created) cells=cells.filter(k=>k!==created);
     const uniq=[...new Set(cells)];
+    if(legendColor>=0){ // le x6 fait aussi exploser toute la couleur
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+        if(board[r][c]===legendColor){ const k=r+','+c; if(k!==created && uniq.indexOf(k)<0) uniq.push(k); }
+    }
     let gain=uniq.length*10*combo+bonus, extra='';
-    if(created){ extra=(maxL>=5?'🌈 Bombe créée +':'⚡ Fruit rayé créé +')+gain; sWin(); }
+    if(created){ extra=(maxL>=6?'🌈✨ LÉGENDAIRE x6 +':(maxL>=5?'🌈 Bombe créée +':'⚡ Fruit rayé créé +'))+gain; sWin(); }
+    else if(maxL>=6){ gain+=500; extra='🌈✨ EXPLOSION LÉGENDAIRE +'+gain; sWin();
+      const p0=uniq[0].split(','), col=board[+p0[0]][+p0[1]];
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++) if(board[r][c]===col) uniq.push(r+','+c);
+      const u3=[...new Set(uniq)]; gain=u3.length*10*combo+500; extra='🌈✨ EXPLOSION LÉGENDAIRE +'+gain;
+      uniq.length=0; u3.forEach(k=>uniq.push(k));
+    }
     else if(maxL>=5){ gain+=300; extra='💥 SUPER EXPLOSION +'+gain; sWin();
       const col=board[+uniq[0].split(',')[0]][+uniq[0].split(',')[1]];
       for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++) if(board[r][c]===col) uniq.push(r+','+c);
