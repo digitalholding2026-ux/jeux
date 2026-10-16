@@ -34,6 +34,14 @@
   body.perf .tile::after,body.perf .btn::before{display:none!important}
   body.perf #board.shake,body.perf .tile.fall,body.perf .tile.spawn,body.perf .specbadge.bomb,body.perf .specbadge.fresh,body.perf .logo-fruits .mini{animation:none!important}
   body.perf .particle,body.perf .confetti,body.perf .mnote{display:none!important}
+  body.perf .tile svg{filter:none!important}
+  body.fast .tile.pop{animation-duration:.12s}
+  body.fast .tile.fall{animation-duration:.09s}
+  body.fast .tile.spawn{animation-duration:.12s}
+  body.fast #board.shake{animation-duration:.18s}
+  body.fast .tile svg{filter:drop-shadow(0 3px 2px rgba(0,40,60,.4))}
+  body.fast #board{transform:translateZ(0)}
+  @media (pointer:coarse){.blob{display:none}}
   @media (orientation:landscape) and (max-height:540px){
     #screen-game{width:96vw;display:grid;grid-template-columns:auto 180px;gap:6px 12px;justify-content:center}
     #screen-game .topbar{grid-column:1/-1;margin-top:6px}
@@ -602,6 +610,9 @@ function buyHammer(n,cost){
 }
 function rand(n){ return Math.floor(Math.random()*n); }
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  const COARSE=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||false;
+  function lowFX(){ try{ return COARSE||document.body.classList.contains('perf'); }catch(e){ return COARSE; } }
+  function wt(n){ return lowFX()?Math.max(25,Math.round(n*0.55)):n; }
 
 /* sons doux */
 let AC=null;
@@ -742,10 +753,11 @@ async function slideTiles(r1,c1,r2,c2){
   if(!a||!b) return;
   const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
   const dx=rb.left-ra.left, dy=rb.top-ra.top;
-  a.style.transition='transform .17s ease'; b.style.transition='transform .17s ease';
+  const _sp=lowFX()?'.09s':'.15s';
+  a.style.transition='transform '+_sp+' ease'; b.style.transition='transform '+_sp+' ease';
   a.style.transform='translate('+dx+'px,'+dy+'px)';
   b.style.transform='translate('+(-dx)+'px,'+(-dy)+'px)';
-  await wait(180);
+  await wait(wt(170));
 }
 function shakeBoard(){ try{ boardEl.classList.remove('shake'); void boardEl.offsetWidth; boardEl.classList.add('shake'); setTimeout(()=>boardEl.classList.remove('shake'),350); }catch(e){} }
 function flash(op){ try{ const f=$('flash'); if(!f||!f.style) return; f.style.opacity=op||.55; setTimeout(()=>{ try{f.style.opacity=0;}catch(e){} },120); }catch(e){} }
@@ -759,7 +771,7 @@ function burst(cells,count){
       const q=el.getBoundingClientRect(); sx+=q.left+q.width/2; sy+=q.top+q.height/2; n++; });
     if(!n) return;
     const cx=sx/n, cy=sy/n, cols=['#ff6b9d','#ffd166','#a06bff','#6fbf73','#ff8c42'];
-    for(let i=0;i<(count||6);i++){
+    for(let i=0,n=Math.min(count||6,lowFX()?6:12);i<n;i++){
       const d=document.createElement('div'); d.className='particle';
       const a=Math.random()*Math.PI*2, dist=40+Math.random()*70;
       d.style.left=cx+'px'; d.style.top=cy+'px';
@@ -775,7 +787,7 @@ function confetti(){
     if(document.body.classList.contains('perf')) return;
     if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const cols=['#ff6b9d','#ffd166','#a06bff','#6fbf73','#4ecdc4'];
-    for(let i=0;i<40;i++){
+    for(let i=0,n=lowFX()?18:40;i<n;i++){
       const d=document.createElement('div'); d.className='confetti';
       d.style.left=(Math.random()*100)+'vw'; d.style.animationDelay=(Math.random()*.8)+'s';
       d.style.background=cols[i%cols.length];
@@ -808,7 +820,7 @@ async function hammerSmash(r,c){
   if(f>=0&&f<colors) collected[f]=(collected[f]||0)+1;
   board[r][c]=-1; spec[r][c]=null; score+=20;
   msg('🔨 Smash +20 !'); tone(300,.15,'square',.08); buzz(50);
-  render(); await wait(70); gravity(); render(); await wait(210);
+  render(); await wait(wt(50)); gravity(); render(); await wait(wt(180));
   await resolve(findMatches()); render(); busy=false;
   await endCheck();
   if(started && movesLeft>0 && !hasMove()){ shuffle(); render(); }
@@ -849,14 +861,14 @@ async function trySwap(r1,c1,r2,c2){
         if(f>=0&&f<colors) collected[f]=(collected[f]||0)+1; board[r][c]=-1; spec[r][c]=null; });
       const g2=keys.size*15+100; score+=g2; msg('🌈 Explosion couleur +'+g2+' !'); explosions++; sWin(); buzz([50,50,80]);
     }
-    render(); await wait(70); gravity(); render(); await wait(210);
+    render(); await wait(wt(50)); gravity(); render(); await wait(wt(180));
     await resolve(findMatches()); render(); busy=false;
     await endCheck();
-    if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(600); shuffle(); render(); }
+    if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(wt(400)); shuffle(); render(); }
     return;
   }
   await slideTiles(r1,c1,r2,c2);
-  swap(r1,c1,r2,c2); render(); await wait(60);
+  swap(r1,c1,r2,c2); render(); await wait(wt(40));
   // déplacement libre : l'échange est toujours gardé et coûte 1 coup.
   // Tout match formé — par n'importe quel fruit, dans n'importe quel sens — explose.
   movesLeft--;
@@ -865,7 +877,7 @@ async function trySwap(r1,c1,r2,c2){
   else { msg('🔄 Déplacé !'); tone(520,.08); }
   render(); busy=false;
   await endCheck();
-  if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(600); shuffle(); render(); }
+  if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(wt(400)); shuffle(); render(); }
 }
 
 function findMatches(){
@@ -961,9 +973,9 @@ async function resolve(first){
     score+=gain; msg(extra); buzz(maxL>=4?[40,40,70]:25); floatScore(uniq,'+'+gain);
     uniq.forEach(k=>{ const p=k.split(','), r=+p[0], c=+p[1];
       const el=boardEl.children[r*COLS+c]; if(el) el.classList.add('pop'); });
-    await wait(270);
+    await wait(wt(240));
     uniq.forEach(k=>{ const p=k.split(','), r=+p[0], c=+p[1]; board[r][c]=-1; spec[r][c]=null; });
-    render(); await wait(70); gravity(); render(); await wait(210);
+    render(); await wait(wt(50)); gravity(); render(); await wait(wt(180));
     m=findMatches();
   }
 }
@@ -1005,7 +1017,7 @@ function refreshHome(){
   $('st-done').textContent=Object.keys(save.stars).length+'/50';
   refreshHomeToggles();
 }
-function applyTheme(){ try{ document.body.classList.toggle('dark',!!save.dark); document.body.classList.toggle('perf',!!save.perf); document.body.setAttribute('data-theme',save.theme||0); }catch(e){} }
+function applyTheme(){ try{ document.body.classList.toggle('dark',!!save.dark); document.body.classList.toggle('perf',!!save.perf); if(COARSE) document.body.classList.add('fast'); document.body.setAttribute('data-theme',save.theme||0); }catch(e){} }
 function refreshHomeToggles(){
   if(!$('setSound')) return;
   $('setSound').textContent=save.sound?'🔊 Son : ON':'🔇 Son : OFF';
@@ -1073,10 +1085,11 @@ async function endCheck(){
   const L=LEVELS[curLevel-1];
   if(goalMet(L)){
     started=false;
-    while(movesLeft>0){ // bonus : chaque coup restant vaut +30 pts
-      movesLeft--; score+=30; render();
-      msg('🍬 Bonus +30 !'); tone(600+movesLeft*12,.09); buzz(15);
-      await wait(110);
+    if(movesLeft>0){ // bonus : chaque coup restant vaut +30 pts (max 6 ticks visuels)
+      const b=movesLeft*30; score+=b; movesLeft=0; render();
+      const steps=lowFX()?3:6;
+      for(let bi=0;bi<steps;bi++){ msg('🍬 Bonus +'+b+' !'); tone(600+bi*60,.09); buzz(15); await wait(wt(110)); }
+      render();
     }
     render(); sWin(); buzz([50,50,80]); confetti();
     const stars=score>=L.s3?3:score>=L.s2?2:1;
