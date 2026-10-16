@@ -143,7 +143,8 @@
     ⚡ <b>4 alignés</b> = fruit rayé (garde-le !)<br>
     🌈 <b>5 alignés</b> = bombe de couleur<br>
     ✨ <b>6 alignés</b> = combo légendaire<br>
-    📱 Glisse le doigt • 🖱️ Clique 2 fruits
+    📱 Glisse le doigt • 🖱️ Clique 2 fruits<br>
+    🔄 Tous les déplacements sont permis (1 coup chacun) !
   </div>
 </div>
 
@@ -451,9 +452,13 @@ async function trySwap(r1,c1,r2,c2){
   }
   await slideTiles(r1,c1,r2,c2);
   swap(r1,c1,r2,c2); render(); await wait(60);
-  let m=findMatches();
-  if(!m.length){ await slideTiles(r1,c1,r2,c2); swap(r1,c1,r2,c2); render(); msg('❌ Pas de combinaison'); sBad(); busy=false; return; }
-  movesLeft--; await resolve(m); render(); busy=false;
+  // déplacement libre : l'échange est toujours gardé et coûte 1 coup.
+  // Tout match formé — par n'importe quel fruit, dans n'importe quel sens — explose.
+  movesLeft--;
+  const m=findMatches();
+  if(m.length){ await resolve(m); }
+  else { msg('🔄 Déplacé !'); tone(520,.08); }
+  render(); busy=false;
   await endCheck();
   if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(600); shuffle(); render(); }
 }
