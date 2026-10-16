@@ -34,6 +34,14 @@
   body.perf .tile::after,body.perf .btn::before{display:none!important}
   body.perf #board.shake,body.perf .tile.fall,body.perf .tile.spawn,body.perf .specbadge.bomb,body.perf .specbadge.fresh,body.perf .logo-fruits .mini{animation:none!important}
   body.perf .particle,body.perf .confetti,body.perf .mnote{display:none!important}
+  body.perf .tile svg{filter:none!important}
+  body.fast .tile.pop{animation-duration:.12s}
+  body.fast .tile.fall{animation-duration:.09s}
+  body.fast .tile.spawn{animation-duration:.12s}
+  body.fast #board.shake{animation-duration:.18s}
+  body.fast .tile svg{filter:drop-shadow(0 3px 2px rgba(0,40,60,.4))}
+  body.fast #board{transform:translateZ(0)}
+  @media (pointer:coarse){.blob{display:none}}
   @media (orientation:landscape) and (max-height:540px){
     #screen-game{width:96vw;display:grid;grid-template-columns:auto 180px;gap:6px 12px;justify-content:center}
     #screen-game .topbar{grid-column:1/-1;margin-top:6px}
@@ -159,11 +167,11 @@
   #goalText{text-align:center;font-weight:800;font-size:.9rem;min-height:22px}
   .tick{position:absolute;top:-5px;width:22px;height:22px;font-size:1rem;transform:translateX(-50%);filter:grayscale(1) drop-shadow(0 1px 2px rgba(0,0,0,.3));opacity:.6;transition:transform .3s}
   .tick.lit{filter:none;opacity:1;transform:translateX(-50%) scale(1.3)}
-  #board{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;width:min(94vw,440px);aspect-ratio:1;background:rgba(255,255,255,.55);padding:8px;border-radius:22px;box-shadow:var(--shadow);border:1.5px solid rgba(255,255,255,.9);margin-top:8px;touch-action:none;position:relative}
-  .tile{border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .15s;box-shadow:0 2px 6px rgba(90,60,120,.12), inset 0 2px 0 rgba(255,255,255,.7)}
-  .tile svg{width:88%;height:88%;pointer-events:none;filter:drop-shadow(0 3px 2px rgba(0,0,0,.18))}
-  .tile::after{content:'';position:absolute;top:5%;left:12%;right:12%;height:30%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
-  .tile.alt{box-shadow:0 2px 6px rgba(90,60,120,.12), inset 0 2px 0 rgba(255,255,255,.7), inset 0 0 0 999px rgba(122,85,160,.09)}
+  #board{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;width:min(94vw,440px);aspect-ratio:1;background:linear-gradient(180deg,#5a3a1e 0%,#3a2412 50%,#211307 100%);padding:8px;border-radius:22px;box-shadow:var(--shadow), inset 0 2px 0 rgba(255,220,170,.35), inset 0 0 40px rgba(0,0,0,.5);border:3px solid #7a5230;margin-top:8px;touch-action:none;position:relative}
+  .tile{border-radius:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .15s;border:2px solid rgba(255,255,255,.9);background:linear-gradient(180deg,#4df0ff 0%,#17c3e8 55%,#0da6cf 100%);box-shadow:0 4px 8px rgba(0,0,0,.35), inset 0 2px 0 rgba(255,255,255,.7), inset 0 -3px 0 rgba(0,90,130,.35)}
+  .tile.alt{background:linear-gradient(180deg,#37d9f2 0%,#0fb0d8 55%,#0b93bd 100%)}
+  .tile svg{width:94%;height:94%;pointer-events:none;filter:drop-shadow(0 3px 2px rgba(0,40,60,.4)) saturate(1.35)}
+  .tile::after{content:'';position:absolute;top:3%;left:8%;right:8%;height:30%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0));pointer-events:none}
   .tile.selected{outline:3px solid #ffd166;transform:scale(1.1);z-index:2;box-shadow:0 0 16px #ffd166;animation:selectbounce .35s}
   @keyframes selectbounce{0%{transform:scale(1.1)}40%{transform:scale(1.24)}100%{transform:scale(1.1)}}
   .tile.pop{animation:pop .28s forwards}
@@ -176,6 +184,21 @@
   .tool{flex:1;background:#fff;border:none;border-radius:14px;padding:11px 4px;font-weight:800;color:var(--ink);box-shadow:var(--shadow);cursor:pointer;font-size:.9rem}
   .floatscore{position:fixed;z-index:50;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(255,77,126,.8),0 0 2px #a06bff;pointer-events:none;animation:floatup .9s forwards;font-size:1.05rem;transform:translate(-50%,-50%)}
   @keyframes floatup{0%{opacity:0;margin-top:6px}20%{opacity:1}100%{opacity:0;margin-top:-34px}}
+  .combo-banner{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.5);z-index:65;font-weight:900;pointer-events:none;opacity:0;white-space:nowrap;text-shadow:0 3px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.35)}
+  .combo-banner.show{animation:bannerpop .9s forwards}
+  @keyframes bannerpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-6deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(2deg)}35%{transform:translate(-50%,-50%) scale(1) rotate(0)}75%{opacity:1;transform:translate(-50%,-56%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%) scale(1.05)}}
+  .combo-banner.cb2{font-size:1.5rem;color:#fff}
+  .combo-banner.cb3{font-size:1.9rem;color:#ffdd44}
+  .combo-banner.cb4{font-size:2.2rem;color:#ff9a3c}
+  .combo-banner.cb5{font-size:2.5rem;background:linear-gradient(90deg,#ff5d8f,#ffd166,#6fbf73,#4ecdc4,#a06bff,#ff5d8f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))}
+  .shockwave{position:fixed;border-radius:50%;z-index:60;pointer-events:none;transform:translate(-50%,-50%);border:5px solid rgba(255,255,255,.9);box-shadow:0 0 18px rgba(255,209,102,.9), inset 0 0 18px rgba(255,209,102,.6);animation:shock .65s ease-out forwards}
+  .shockwave.mega{border-color:#ffb35c}
+  .shockwave.legendary{border-color:#fff;box-shadow:0 0 26px #ffd166, inset 0 0 26px #ff5d8f}
+  @keyframes shock{from{opacity:1;transform:translate(-50%,-50%) scale(.2)}to{opacity:0;transform:translate(-50%,-50%) scale(1.6)}}
+  .combo-rays{position:fixed;width:420px;height:420px;margin:-210px 0 0 -210px;z-index:1;pointer-events:none;opacity:.55;background:repeating-conic-gradient(rgba(255,209,102,.5) 0 12deg,transparent 12deg 24deg);-webkit-mask-image:radial-gradient(circle,#000 0%,transparent 65%);mask-image:radial-gradient(circle,#000 0%,transparent 65%);border-radius:50%;animation:rayspin 1.3s linear forwards}
+  @keyframes rayspin{from{transform:rotate(0) scale(.6);opacity:.6}to{transform:rotate(180deg) scale(1.1);opacity:0}}
+  body.perf .shockwave,body.perf .combo-rays{display:none}
+  body.perf .combo-banner.show{animation-duration:.4s}
   @media (prefers-reduced-motion: reduce){
     .logo-fruits .mini,.lvl.current{animation:none}
     .tile.spawn{animation:none}
@@ -201,7 +224,7 @@
   .tool.active{outline:3px solid #ffd166;background:#fff7dd}
   body.dark{background:linear-gradient(180deg,#241c31,#1f2433 60%,#1a2b26);color:#f2e9f5}
   body.dark .card,body.dark .hudcard,body.dark .tool,body.dark .lvl,body.dark .stat,body.dark .iconbtn{background:rgba(56,45,75,.92);color:#f2e9f5;border-color:rgba(255,255,255,.1)}
-  body.dark #board{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
+  body.dark #board{background:linear-gradient(180deg,#3a2412,#150c04);border-color:#7a5230}
   body.dark .subtitle,body.dark .modalcard p,body.dark .topbar h2{color:#cdbcd8}
   body.dark .modalcard{background:#332944;color:#f2e9f5}
   body.dark .lvl.locked{background:#241d2e;color:#6f6280;box-shadow:none}
@@ -409,20 +432,20 @@
 
 <script>
 "use strict";
-/* ===== FRUITS STYLE BONBON (glossy, contours marqués) ===== */
+/* ===== FRUITS CARTOON (refs : remplissage vif + visages, contours epais, tuiles cyan) ===== */
 const FRUITS = [
-  {name:'Pomme', bg:'linear-gradient(135deg,#ffe1e5,#ffc3cc)',
-   svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="90" rx="24" ry="5" fill="#000" opacity=".12"/><path d="M50 24 Q52 12 62 10" stroke="#4a7c2f" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M62 10 Q78 6 82 16 Q76 26 60 20 Z" fill="#5da23f" stroke="#3f7a28" stroke-width="3" stroke-linejoin="round"/><defs><radialGradient id="g0" cx="38%" cy="30%" r="80%"><stop offset="0%" stop-color="#ff8a95"/><stop offset="55%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#be123c"/></radialGradient></defs><path d="M50 26 C32 18 18 30 20 52 C22 74 36 88 50 88 C64 88 78 74 80 52 C82 30 68 18 50 26Z" fill="url(#g0)" stroke="#9f1239" stroke-width="4" stroke-linejoin="round"/><ellipse cx="36" cy="46" rx="9" ry="14" fill="#fff" opacity=".5" transform="rotate(-15 36 46)"/><circle cx="63" cy="34" r="4" fill="#fff" opacity=".85"/></svg>`},
-  {name:'Citron', bg:'linear-gradient(135deg,#fff3c4,#ffe08a)',
-   svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="88" rx="24" ry="5" fill="#000" opacity=".12"/><defs><radialGradient id="g1" cx="38%" cy="32%" r="85%"><stop offset="0%" stop-color="#fff7ad"/><stop offset="55%" stop-color="#fde047"/><stop offset="100%" stop-color="#f59e0b"/></radialGradient></defs><path d="M10 52 Q26 28 50 28 Q74 28 90 52 Q74 76 50 76 Q26 76 10 52Z" fill="url(#g1)" stroke="#b45309" stroke-width="4" stroke-linejoin="round"/><ellipse cx="36" cy="44" rx="11" ry="7" fill="#fff" opacity=".55" transform="rotate(-18 36 44)"/><circle cx="62" cy="38" r="3.4" fill="#fff" opacity=".8"/></svg>`},
-  {name:'Raisin', bg:'linear-gradient(135deg,#e6d9ff,#cdb2ff)',
-   svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="92" rx="24" ry="5" fill="#000" opacity=".12"/><path d="M50 8 L50 20" stroke="#4a7c2f" stroke-width="6" stroke-linecap="round"/><path d="M52 10 Q68 4 74 12 Q68 22 52 18 Z" fill="#5da23f" stroke="#3f7a28" stroke-width="3" stroke-linejoin="round"/><defs><radialGradient id="g2" cx="35%" cy="30%" r="80%"><stop offset="0%" stop-color="#d8b4fe"/><stop offset="60%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#6d28d9"/></radialGradient></defs><g stroke="#5b21b6" stroke-width="3"><circle cx="35" cy="38" r="14" fill="url(#g2)"/><circle cx="65" cy="38" r="14" fill="url(#g2)"/><circle cx="24" cy="56" r="14" fill="url(#g2)"/><circle cx="50" cy="56" r="14" fill="url(#g2)"/><circle cx="76" cy="56" r="14" fill="url(#g2)"/><circle cx="37" cy="74" r="14" fill="url(#g2)"/><circle cx="63" cy="74" r="14" fill="url(#g2)"/></g><g fill="#fff" opacity=".75"><circle cx="30" cy="33" r="3.6"/><circle cx="60" cy="33" r="3.6"/><circle cx="45" cy="51" r="3.6"/><circle cx="32" cy="69" r="3.6"/></g></svg>`},
-  {name:'Fraise', bg:'linear-gradient(135deg,#ffd9e2,#ffb3c7)',
-   svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="92" rx="22" ry="5" fill="#000" opacity=".12"/><defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb7185"/><stop offset="60%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#be123c"/></linearGradient></defs><path d="M50 90 C28 72 16 56 18 40 C20 30 32 26 50 28 C68 26 80 30 82 40 C84 56 72 72 50 90Z" fill="url(#g3)" stroke="#9f1239" stroke-width="4" stroke-linejoin="round"/><path d="M24 32 L36 14 L45 28 L50 12 L55 28 L64 14 L76 32 Q63 42 50 42 Q37 42 24 32Z" fill="#4ade80" stroke="#15803d" stroke-width="3" stroke-linejoin="round"/><g fill="#ffe4e6"><ellipse cx="38" cy="54" rx="2.8" ry="3.6"/><ellipse cx="50" cy="60" rx="2.8" ry="3.6"/><ellipse cx="62" cy="54" rx="2.8" ry="3.6"/><ellipse cx="44" cy="70" rx="2.8" ry="3.6"/><ellipse cx="57" cy="70" rx="2.8" ry="3.6"/><ellipse cx="50" cy="46" rx="2.8" ry="3.6"/></g><ellipse cx="34" cy="46" rx="7" ry="10" fill="#fff" opacity=".5" transform="rotate(-18 34 46)"/></svg>`},
-  {name:'Pastèque', bg:'linear-gradient(135deg,#d6f5dd,#b5e8c3)',
-   svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="92" rx="26" ry="5" fill="#000" opacity=".12"/><defs><radialGradient id="g4" cx="50%" cy="30%" r="90%"><stop offset="0%" stop-color="#fda4af"/><stop offset="60%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#be123c"/></radialGradient></defs><path d="M8 30 Q50 52 92 30 L50 92 Z" fill="#22c55e" stroke="#166534" stroke-width="4" stroke-linejoin="round"/><path d="M17 33 Q50 51 83 33 L50 83 Z" fill="#f0fdf4"/><path d="M24 36 Q50 51 76 36 L50 76 Z" fill="url(#g4)"/><g fill="#431407"><ellipse cx="41" cy="55" rx="2.6" ry="3.6"/><ellipse cx="50" cy="60" rx="2.6" ry="3.6"/><ellipse cx="59" cy="55" rx="2.6" ry="3.6"/><ellipse cx="50" cy="69" rx="2.6" ry="3.6"/></g><ellipse cx="38" cy="48" rx="6" ry="4" fill="#fff" opacity=".55" transform="rotate(-18 38 48)"/></svg>`},
-  {name:'Orange', bg:'linear-gradient(135deg,#ffedd2,#ffcf9e)',
-   svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="90" rx="24" ry="5" fill="#000" opacity=".12"/><path d="M50 24 Q50 16 56 12" stroke="#4a7c2f" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M57 12 Q72 6 77 15 Q71 24 56 19 Z" fill="#5da23f" stroke="#3f7a28" stroke-width="3" stroke-linejoin="round"/><defs><radialGradient id="g5" cx="38%" cy="30%" r="80%"><stop offset="0%" stop-color="#fed7aa"/><stop offset="55%" stop-color="#fb923c"/><stop offset="100%" stop-color="#ea580c"/></radialGradient></defs><circle cx="50" cy="56" r="31" fill="url(#g5)" stroke="#9a3412" stroke-width="4"/><g fill="#9a3412" opacity=".35"><circle cx="40" cy="62" r="1.8"/><circle cx="50" cy="68" r="1.8"/><circle cx="60" cy="62" r="1.8"/><circle cx="45" cy="50" r="1.8"/><circle cx="56" cy="50" r="1.8"/></g><ellipse cx="38" cy="44" rx="10" ry="7" fill="#fff" opacity=".55" transform="rotate(-20 38 44)"/><circle cx="62" cy="38" r="3.6" fill="#fff" opacity=".8"/></svg>`}
+  {name:'Pomme',
+   svg:'<svg viewBox="0 0 100 100"><ellipse cx="50" cy="90" rx="25" ry="6" fill="#005a70" opacity=".35"/><path d="M50 28 Q51 16 60 12" stroke="#7a4a21" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M60 13 Q78 6 85 16 Q78 28 60 22 Z" fill="#58b368" stroke="#2c7a3f" stroke-width="3" stroke-linejoin="round"/><path d="M50 28 C33 19 17 30 19 53 C21 75 36 89 50 89 C64 89 79 75 81 53 C83 30 67 19 50 28Z" fill="#f8443c" stroke="#8f1d12" stroke-width="4" stroke-linejoin="round"/><path d="M64 31 C75 39 79 51 77 65 C75 79 65 86 57 88 C70 84 82 70 82 52 C82 41 74 33 64 31Z" fill="#c62828"/><ellipse cx="33" cy="46" rx="7" ry="12" fill="#fff" opacity=".8" transform="rotate(-15 33 46)"/><circle cx="61" cy="35" r="3.5" fill="#fff" opacity=".95"/><ellipse cx="39" cy="60" rx="5" ry="6.5" fill="#fff"/><ellipse cx="61" cy="60" rx="5" ry="6.5" fill="#fff"/><circle cx="39" cy="61.5" r="2.8" fill="#2b2b2b"/><circle cx="61" cy="61.5" r="2.8" fill="#2b2b2b"/><circle cx="40" cy="60.5" r="1" fill="#fff"/><circle cx="62" cy="60.5" r="1" fill="#fff"/><path d="M43 72 Q50 78 57 72" stroke="#5b0f0a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'},
+  {name:'Citron',
+   svg:'<svg viewBox="0 0 100 100"><ellipse cx="50" cy="88" rx="26" ry="6" fill="#005a70" opacity=".35"/><path d="M50 32 Q49 22 55 17" stroke="#7a4a21" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M56 17 Q70 11 75 19 Q69 28 55 24 Z" fill="#58b368" stroke="#2c7a3f" stroke-width="2.5" stroke-linejoin="round"/><path d="M22 50 L12 46 L15 57 Z" fill="#ffd91a" stroke="#9a6b00" stroke-width="3" stroke-linejoin="round"/><path d="M78 50 L88 46 L85 57 Z" fill="#ffd91a" stroke="#9a6b00" stroke-width="3" stroke-linejoin="round"/><ellipse cx="50" cy="56" rx="31" ry="25" fill="#ffd91a" stroke="#9a6b00" stroke-width="4"/><path d="M60 34 C72 40 78 48 78 58 C78 70 68 78 58 80 C70 75 76 67 75 57 C74 47 68 39 60 34Z" fill="#e0a800"/><ellipse cx="35" cy="45" rx="10" ry="6" fill="#fff" opacity=".7" transform="rotate(-18 35 45)"/><circle cx="63" cy="40" r="3.2" fill="#fff" opacity=".95"/><path d="M32 60 Q38 56 44 60" stroke="#3a2a00" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M56 60 Q62 56 68 60" stroke="#3a2a00" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="72" rx="3.2" ry="4" fill="#3a2a00"/></svg>'},
+  {name:'Raisin',
+   svg:'<svg viewBox="0 0 100 100"><ellipse cx="50" cy="93" rx="26" ry="5" fill="#005a70" opacity=".35"/><path d="M50 10 L50 22" stroke="#4a7c2f" stroke-width="6" stroke-linecap="round"/><path d="M52 11 Q70 5 77 14 Q70 25 51 20 Z" fill="#58b368" stroke="#2c7a3f" stroke-width="3" stroke-linejoin="round"/><g stroke="#5b1a9e" stroke-width="3.5"><circle cx="35" cy="38" r="14" fill="#a63df2"/><circle cx="65" cy="38" r="14" fill="#a63df2"/><circle cx="23" cy="57" r="14" fill="#a63df2"/><circle cx="50" cy="57" r="14" fill="#9333d6"/><circle cx="77" cy="57" r="14" fill="#a63df2"/><circle cx="36" cy="76" r="14" fill="#a63df2"/><circle cx="64" cy="76" r="14" fill="#a63df2"/></g><g fill="#fff" opacity=".85"><ellipse cx="30" cy="32" rx="4" ry="5.5" transform="rotate(-20 30 32)"/><ellipse cx="60" cy="32" rx="4" ry="5.5" transform="rotate(-20 60 32)"/><ellipse cx="18" cy="51" rx="4" ry="5.5" transform="rotate(-20 18 51)"/><ellipse cx="72" cy="51" rx="4" ry="5.5" transform="rotate(-20 72 51)"/></g><ellipse cx="43" cy="55" rx="4.5" ry="6" fill="#fff"/><ellipse cx="57" cy="55" rx="4.5" ry="6" fill="#fff"/><circle cx="43" cy="56.5" r="2.6" fill="#2b2b2b"/><circle cx="57" cy="56.5" r="2.6" fill="#2b2b2b"/><path d="M44 67 Q50 72 56 67" stroke="#2b0a3a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'},
+  {name:'Orange',
+   svg:'<svg viewBox="0 0 100 100"><ellipse cx="50" cy="90" rx="25" ry="6" fill="#005a70" opacity=".35"/><path d="M50 27 Q50 17 55 12" stroke="#7a4a21" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M55 12 Q48 6 40 8 Q44 16 54 16 Z" fill="#58b368" stroke="#2c7a3f" stroke-width="2.5" stroke-linejoin="round"/><path d="M56 12 Q64 4 72 8 Q68 16 57 16 Z" fill="#58b368" stroke="#2c7a3f" stroke-width="2.5" stroke-linejoin="round"/><circle cx="50" cy="57" r="31" fill="#ff8c1a" stroke="#9e4d00" stroke-width="4"/><path d="M62 30 C74 37 80 47 80 59 C80 73 69 82 59 84 C71 79 77 70 76 59 C75 48 69 38 62 30Z" fill="#e06e00"/><ellipse cx="35" cy="45" rx="9" ry="13" fill="#fff" opacity=".8" transform="rotate(-16 35 45)"/><circle cx="63" cy="37" r="3.5" fill="#fff" opacity=".95"/><path d="M32 60 Q39 56 46 60" stroke="#4a2a00" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M54 60 Q61 56 68 60" stroke="#4a2a00" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="72" rx="3.2" ry="4" fill="#4a2a00"/></svg>'},
+  {name:'Pastèque',
+   svg:'<svg viewBox="0 0 100 100"><ellipse cx="50" cy="90" rx="25" ry="6" fill="#003a2a" opacity=".4"/><path d="M50 16 Q50 9 55 7" stroke="#2c7a3f" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="50" cy="56" r="31" fill="#3ddc68" stroke="#0f5c2e" stroke-width="4"/><g stroke="#147a3d" stroke-width="5" fill="none" stroke-linecap="round"><path d="M35 29 Q31 56 36 83"/><path d="M50 25 Q48 56 50 87"/><path d="M65 29 Q69 56 64 83"/></g><ellipse cx="36" cy="43" rx="9" ry="6" fill="#fff" opacity=".7" transform="rotate(-20 36 43)"/><circle cx="62" cy="36" r="3.4" fill="#fff" opacity=".95"/><path d="M31 51 L44 55" stroke="#0d3a20" stroke-width="3.5" stroke-linecap="round"/><path d="M69 51 L56 55" stroke="#0d3a20" stroke-width="3.5" stroke-linecap="round"/><circle cx="39" cy="60" r="3" fill="#0d3a20"/><circle cx="61" cy="60" r="3" fill="#0d3a20"/><path d="M42 75 Q50 69 58 75" stroke="#0d3a20" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'},
+  {name:'Myrtille',
+   svg:'<svg viewBox="0 0 100 100"><ellipse cx="50" cy="90" rx="25" ry="6" fill="#005a70" opacity=".35"/><circle cx="50" cy="57" r="31" fill="#2f9dff" stroke="#0b3d91" stroke-width="4"/><path d="M62 30 C74 37 80 47 80 59 C80 73 69 82 59 84 C71 79 77 70 76 59 C75 48 69 38 62 30Z" fill="#1a6fe0"/><ellipse cx="50" cy="29" rx="10" ry="6" fill="#123a7a"/><path d="M43 28 L46 23 L50 28 L54 23 L57 28 L55 33 L45 33 Z" fill="#0b2c66"/><ellipse cx="35" cy="46" rx="9" ry="13" fill="#fff" opacity=".8" transform="rotate(-16 35 46)"/><circle cx="63" cy="38" r="3.5" fill="#fff" opacity=".95"/><ellipse cx="40" cy="60" rx="5.5" ry="7" fill="#fff"/><ellipse cx="60" cy="60" rx="5.5" ry="7" fill="#fff"/><circle cx="40" cy="61" r="3" fill="#2b2b2b"/><circle cx="60" cy="61" r="3" fill="#2b2b2b"/><ellipse cx="50" cy="73" rx="3.5" ry="4.5" fill="#0b2c66"/></svg>'}
 ];
 
 /* ===== 50 NIVEAUX (score / collecte / explosions) + MONDES ===== */
@@ -602,6 +625,9 @@ function buyHammer(n,cost){
 }
 function rand(n){ return Math.floor(Math.random()*n); }
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  const COARSE=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||false;
+  function lowFX(){ try{ return COARSE||document.body.classList.contains('perf'); }catch(e){ return COARSE; } }
+  function wt(n){ return lowFX()?Math.max(25,Math.round(n*0.55)):n; }
 
 /* sons doux */
 let AC=null;
@@ -647,7 +673,7 @@ function render(){
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     const f=board[r][c], F=FRUITS[f]||{bg:'rgba(255,255,255,.35)',svg:''}, d=document.createElement('div');
     d.className='tile'+(((r+c)%2)?' alt':'')+(selected&&selected.r===r&&selected.c===c?' selected':'');
-    d.style.background=F.bg;
+    /* tuiles cyan uniformes via CSS (ref De Messa) */
     d.innerHTML=F.svg;
     if(pendingDrops){ const dd=pendingDrops[r][c]; if(dd>0){ d.classList.add('fall'); d.style.setProperty('--drop',dd); } }
     const spt=spec[r][c];
@@ -742,10 +768,11 @@ async function slideTiles(r1,c1,r2,c2){
   if(!a||!b) return;
   const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
   const dx=rb.left-ra.left, dy=rb.top-ra.top;
-  a.style.transition='transform .17s ease'; b.style.transition='transform .17s ease';
+  const _sp=lowFX()?'.09s':'.15s';
+  a.style.transition='transform '+_sp+' ease'; b.style.transition='transform '+_sp+' ease';
   a.style.transform='translate('+dx+'px,'+dy+'px)';
   b.style.transform='translate('+(-dx)+'px,'+(-dy)+'px)';
-  await wait(180);
+  await wait(wt(170));
 }
 function shakeBoard(){ try{ boardEl.classList.remove('shake'); void boardEl.offsetWidth; boardEl.classList.add('shake'); setTimeout(()=>boardEl.classList.remove('shake'),350); }catch(e){} }
 function flash(op){ try{ const f=$('flash'); if(!f||!f.style) return; f.style.opacity=op||.55; setTimeout(()=>{ try{f.style.opacity=0;}catch(e){} },120); }catch(e){} }
@@ -759,7 +786,7 @@ function burst(cells,count){
       const q=el.getBoundingClientRect(); sx+=q.left+q.width/2; sy+=q.top+q.height/2; n++; });
     if(!n) return;
     const cx=sx/n, cy=sy/n, cols=['#ff6b9d','#ffd166','#a06bff','#6fbf73','#ff8c42'];
-    for(let i=0;i<(count||6);i++){
+    for(let i=0,n=Math.min(count||6,lowFX()?6:12);i<n;i++){
       const d=document.createElement('div'); d.className='particle';
       const a=Math.random()*Math.PI*2, dist=40+Math.random()*70;
       d.style.left=cx+'px'; d.style.top=cy+'px';
@@ -775,7 +802,7 @@ function confetti(){
     if(document.body.classList.contains('perf')) return;
     if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const cols=['#ff6b9d','#ffd166','#a06bff','#6fbf73','#4ecdc4'];
-    for(let i=0;i<40;i++){
+    for(let i=0,n=lowFX()?18:40;i<n;i++){
       const d=document.createElement('div'); d.className='confetti';
       d.style.left=(Math.random()*100)+'vw'; d.style.animationDelay=(Math.random()*.8)+'s';
       d.style.background=cols[i%cols.length];
@@ -801,6 +828,45 @@ function floatScore(cells,text){
     setTimeout(()=>d.remove(),950);
   }catch(e){}
 }
+function comboCenter(cells){
+  let sx=0,sy=0,n=0;
+  cells.forEach(k=>{ const p=k.split(','), el=tileEl(+p[0],+p[1]); if(!el||!el.getBoundingClientRect) return;
+    const q=el.getBoundingClientRect(); sx+=q.left+q.width/2; sy+=q.top+q.height/2; n++; });
+  return n?{x:sx/n,y:sy/n}:null;
+}
+function comboFX(combo,cells,maxL){
+  try{
+    if(combo<2||!started) return;
+    const c=comboCenter(cells); if(!c) return;
+    const fast=lowFX();
+    const rings=fast?1:(combo>=5?3:(combo>=4?2:1));
+    for(let i=0;i<rings;i++){
+      const d=document.createElement('div');
+      d.className='shockwave'+(combo>=5?' legendary':(combo>=4?' mega':''));
+      const size=combo>=5?150:(combo>=4?120:90);
+      d.style.width=d.style.height=size+'px';
+      d.style.left=c.x+'px'; d.style.top=c.y+'px';
+      if(i>0) d.style.animationDelay=(i*0.12)+'s';
+      document.body.appendChild(d); setTimeout(()=>d.remove(),900+i*120);
+    }
+    let b=document.getElementById('comboBanner');
+    if(!b){ b=document.createElement('div'); b.id='comboBanner'; document.body.appendChild(b); }
+    b.className='combo-banner '+(combo>=5?'cb5':combo>=4?'cb4':combo>=3?'cb3':'cb2');
+    b.textContent=combo>=10?('🌈 COMBO DIVIN x'+combo+' !'):combo>=5?('🌈 COMBO EXTRÊME x'+combo+' !'):combo>=4?'🔥🔥 MÉGA COMBO x4 !':combo>=3?'🔥 COMBO x3 !':'🔗 Chaîne x2';
+    try{ void b.offsetWidth; }catch(e){}
+    b.classList.add('show');
+    clearTimeout(comboFX._t); comboFX._t=setTimeout(()=>b.classList.remove('show'),fast?700:950);
+    if(combo>=3) shakeBoard();
+    if(combo>=4) flash(combo>=5?.8:.6);
+    if(combo>=5&&!fast){
+      const r=document.createElement('div'); r.className='combo-rays';
+      const br=boardEl.getBoundingClientRect();
+      r.style.left=(br.left+br.width/2)+'px'; r.style.top=(br.top+br.height/2)+'px';
+      document.body.appendChild(r); setTimeout(()=>r.remove(),1300);
+      buzz([60,40,60,40,120]);
+    } else if(combo>=3) buzz([40,40,60]);
+  }catch(e){}
+}
 async function hammerSmash(r,c){
   if(busy||!started||!(save.hammers>0)) return;
   busy=true; hammerMode=false; save.hammers--; persist(); updateHammerBtn();
@@ -808,7 +874,7 @@ async function hammerSmash(r,c){
   if(f>=0&&f<colors) collected[f]=(collected[f]||0)+1;
   board[r][c]=-1; spec[r][c]=null; score+=20;
   msg('🔨 Smash +20 !'); tone(300,.15,'square',.08); buzz(50);
-  render(); await wait(70); gravity(); render(); await wait(210);
+  render(); await wait(wt(50)); gravity(); render(); await wait(wt(180));
   await resolve(findMatches()); render(); busy=false;
   await endCheck();
   if(started && movesLeft>0 && !hasMove()){ shuffle(); render(); }
@@ -849,14 +915,14 @@ async function trySwap(r1,c1,r2,c2){
         if(f>=0&&f<colors) collected[f]=(collected[f]||0)+1; board[r][c]=-1; spec[r][c]=null; });
       const g2=keys.size*15+100; score+=g2; msg('🌈 Explosion couleur +'+g2+' !'); explosions++; sWin(); buzz([50,50,80]);
     }
-    render(); await wait(70); gravity(); render(); await wait(210);
+    render(); await wait(wt(50)); gravity(); render(); await wait(wt(180));
     await resolve(findMatches()); render(); busy=false;
     await endCheck();
-    if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(600); shuffle(); render(); }
+    if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(wt(400)); shuffle(); render(); }
     return;
   }
   await slideTiles(r1,c1,r2,c2);
-  swap(r1,c1,r2,c2); render(); await wait(60);
+  swap(r1,c1,r2,c2); render(); await wait(wt(40));
   // déplacement libre : l'échange est toujours gardé et coûte 1 coup.
   // Tout match formé — par n'importe quel fruit, dans n'importe quel sens — explose.
   movesLeft--;
@@ -865,7 +931,7 @@ async function trySwap(r1,c1,r2,c2){
   else { msg('🔄 Déplacé !'); tone(520,.08); }
   render(); busy=false;
   await endCheck();
-  if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(600); shuffle(); render(); }
+  if(started && movesLeft>0 && !hasMove()){ msg('🔀 Mélange auto…'); await wait(wt(400)); shuffle(); render(); }
 }
 
 function findMatches(){
@@ -958,12 +1024,13 @@ async function resolve(first){
     if(combo>=3 && maxL>=4) extra+=' 🔥x'+combo;
     if(maxL>=4) explosions++;
     uniq.forEach(k=>{ const p=k.split(','), f=board[+p[0]][+p[1]]; if(f>=0&&f<colors) collected[f]=(collected[f]||0)+1; });
+    comboFX(combo,uniq,maxL);
     score+=gain; msg(extra); buzz(maxL>=4?[40,40,70]:25); floatScore(uniq,'+'+gain);
     uniq.forEach(k=>{ const p=k.split(','), r=+p[0], c=+p[1];
       const el=boardEl.children[r*COLS+c]; if(el) el.classList.add('pop'); });
-    await wait(270);
+    await wait(wt(240));
     uniq.forEach(k=>{ const p=k.split(','), r=+p[0], c=+p[1]; board[r][c]=-1; spec[r][c]=null; });
-    render(); await wait(70); gravity(); render(); await wait(210);
+    render(); await wait(wt(50)); gravity(); render(); await wait(wt(180));
     m=findMatches();
   }
 }
@@ -1005,7 +1072,7 @@ function refreshHome(){
   $('st-done').textContent=Object.keys(save.stars).length+'/50';
   refreshHomeToggles();
 }
-function applyTheme(){ try{ document.body.classList.toggle('dark',!!save.dark); document.body.classList.toggle('perf',!!save.perf); document.body.setAttribute('data-theme',save.theme||0); }catch(e){} }
+function applyTheme(){ try{ document.body.classList.toggle('dark',!!save.dark); document.body.classList.toggle('perf',!!save.perf); if(COARSE) document.body.classList.add('fast'); document.body.setAttribute('data-theme',save.theme||0); }catch(e){} }
 function refreshHomeToggles(){
   if(!$('setSound')) return;
   $('setSound').textContent=save.sound?'🔊 Son : ON':'🔇 Son : OFF';
@@ -1073,10 +1140,11 @@ async function endCheck(){
   const L=LEVELS[curLevel-1];
   if(goalMet(L)){
     started=false;
-    while(movesLeft>0){ // bonus : chaque coup restant vaut +30 pts
-      movesLeft--; score+=30; render();
-      msg('🍬 Bonus +30 !'); tone(600+movesLeft*12,.09); buzz(15);
-      await wait(110);
+    if(movesLeft>0){ // bonus : chaque coup restant vaut +30 pts (max 6 ticks visuels)
+      const b=movesLeft*30; score+=b; movesLeft=0; render();
+      const steps=lowFX()?3:6;
+      for(let bi=0;bi<steps;bi++){ msg('🍬 Bonus +'+b+' !'); tone(600+bi*60,.09); buzz(15); await wait(wt(110)); }
+      render();
     }
     render(); sWin(); buzz([50,50,80]); confetti();
     const stars=score>=L.s3?3:score>=L.s2?2:1;
@@ -1129,7 +1197,7 @@ function showModal(win,stars){
 function hideModal(){ $('modal').classList.add('hidden'); }
 
 /* ===== NAV ===== */
-$('logoFruits').innerHTML=[0,1,3,5].map(i=>`<div class="mini" style="background:${FRUITS[i].bg}">${FRUITS[i].svg}</div>`).join('');
+$('logoFruits').innerHTML=[0,1,3,5].map(i=>`<div class="mini" style="background:linear-gradient(180deg,#4df0ff,#0da6cf)">${FRUITS[i].svg}</div>`).join('');
 [...$('logoFruits').children].forEach((el,i)=>el.addEventListener('click',()=>{ try{ el.classList.remove('spin'); void el.offsetWidth; el.classList.add('spin'); }catch(e){} pop(500+i*150); }));
 $('btnPlay').onclick=()=>{ tone(700,.12); startLevel(Math.min(save.unlocked,50)); };
 $('btnLevels').onclick=()=>{ buildLevels(); show('screen-levels'); };

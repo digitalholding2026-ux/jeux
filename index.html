@@ -184,6 +184,21 @@
   .tool{flex:1;background:#fff;border:none;border-radius:14px;padding:11px 4px;font-weight:800;color:var(--ink);box-shadow:var(--shadow);cursor:pointer;font-size:.9rem}
   .floatscore{position:fixed;z-index:50;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(255,77,126,.8),0 0 2px #a06bff;pointer-events:none;animation:floatup .9s forwards;font-size:1.05rem;transform:translate(-50%,-50%)}
   @keyframes floatup{0%{opacity:0;margin-top:6px}20%{opacity:1}100%{opacity:0;margin-top:-34px}}
+  .combo-banner{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.5);z-index:65;font-weight:900;pointer-events:none;opacity:0;white-space:nowrap;text-shadow:0 3px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.35)}
+  .combo-banner.show{animation:bannerpop .9s forwards}
+  @keyframes bannerpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-6deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(2deg)}35%{transform:translate(-50%,-50%) scale(1) rotate(0)}75%{opacity:1;transform:translate(-50%,-56%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%) scale(1.05)}}
+  .combo-banner.cb2{font-size:1.5rem;color:#fff}
+  .combo-banner.cb3{font-size:1.9rem;color:#ffdd44}
+  .combo-banner.cb4{font-size:2.2rem;color:#ff9a3c}
+  .combo-banner.cb5{font-size:2.5rem;background:linear-gradient(90deg,#ff5d8f,#ffd166,#6fbf73,#4ecdc4,#a06bff,#ff5d8f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))}
+  .shockwave{position:fixed;border-radius:50%;z-index:60;pointer-events:none;transform:translate(-50%,-50%);border:5px solid rgba(255,255,255,.9);box-shadow:0 0 18px rgba(255,209,102,.9), inset 0 0 18px rgba(255,209,102,.6);animation:shock .65s ease-out forwards}
+  .shockwave.mega{border-color:#ffb35c}
+  .shockwave.legendary{border-color:#fff;box-shadow:0 0 26px #ffd166, inset 0 0 26px #ff5d8f}
+  @keyframes shock{from{opacity:1;transform:translate(-50%,-50%) scale(.2)}to{opacity:0;transform:translate(-50%,-50%) scale(1.6)}}
+  .combo-rays{position:fixed;width:420px;height:420px;margin:-210px 0 0 -210px;z-index:1;pointer-events:none;opacity:.55;background:repeating-conic-gradient(rgba(255,209,102,.5) 0 12deg,transparent 12deg 24deg);-webkit-mask-image:radial-gradient(circle,#000 0%,transparent 65%);mask-image:radial-gradient(circle,#000 0%,transparent 65%);border-radius:50%;animation:rayspin 1.3s linear forwards}
+  @keyframes rayspin{from{transform:rotate(0) scale(.6);opacity:.6}to{transform:rotate(180deg) scale(1.1);opacity:0}}
+  body.perf .shockwave,body.perf .combo-rays{display:none}
+  body.perf .combo-banner.show{animation-duration:.4s}
   @media (prefers-reduced-motion: reduce){
     .logo-fruits .mini,.lvl.current{animation:none}
     .tile.spawn{animation:none}
@@ -813,6 +828,45 @@ function floatScore(cells,text){
     setTimeout(()=>d.remove(),950);
   }catch(e){}
 }
+function comboCenter(cells){
+  let sx=0,sy=0,n=0;
+  cells.forEach(k=>{ const p=k.split(','), el=tileEl(+p[0],+p[1]); if(!el||!el.getBoundingClientRect) return;
+    const q=el.getBoundingClientRect(); sx+=q.left+q.width/2; sy+=q.top+q.height/2; n++; });
+  return n?{x:sx/n,y:sy/n}:null;
+}
+function comboFX(combo,cells,maxL){
+  try{
+    if(combo<2||!started) return;
+    const c=comboCenter(cells); if(!c) return;
+    const fast=lowFX();
+    const rings=fast?1:(combo>=5?3:(combo>=4?2:1));
+    for(let i=0;i<rings;i++){
+      const d=document.createElement('div');
+      d.className='shockwave'+(combo>=5?' legendary':(combo>=4?' mega':''));
+      const size=combo>=5?150:(combo>=4?120:90);
+      d.style.width=d.style.height=size+'px';
+      d.style.left=c.x+'px'; d.style.top=c.y+'px';
+      if(i>0) d.style.animationDelay=(i*0.12)+'s';
+      document.body.appendChild(d); setTimeout(()=>d.remove(),900+i*120);
+    }
+    let b=document.getElementById('comboBanner');
+    if(!b){ b=document.createElement('div'); b.id='comboBanner'; document.body.appendChild(b); }
+    b.className='combo-banner '+(combo>=5?'cb5':combo>=4?'cb4':combo>=3?'cb3':'cb2');
+    b.textContent=combo>=10?('🌈 COMBO DIVIN x'+combo+' !'):combo>=5?('🌈 COMBO EXTRÊME x'+combo+' !'):combo>=4?'🔥🔥 MÉGA COMBO x4 !':combo>=3?'🔥 COMBO x3 !':'🔗 Chaîne x2';
+    try{ void b.offsetWidth; }catch(e){}
+    b.classList.add('show');
+    clearTimeout(comboFX._t); comboFX._t=setTimeout(()=>b.classList.remove('show'),fast?700:950);
+    if(combo>=3) shakeBoard();
+    if(combo>=4) flash(combo>=5?.8:.6);
+    if(combo>=5&&!fast){
+      const r=document.createElement('div'); r.className='combo-rays';
+      const br=boardEl.getBoundingClientRect();
+      r.style.left=(br.left+br.width/2)+'px'; r.style.top=(br.top+br.height/2)+'px';
+      document.body.appendChild(r); setTimeout(()=>r.remove(),1300);
+      buzz([60,40,60,40,120]);
+    } else if(combo>=3) buzz([40,40,60]);
+  }catch(e){}
+}
 async function hammerSmash(r,c){
   if(busy||!started||!(save.hammers>0)) return;
   busy=true; hammerMode=false; save.hammers--; persist(); updateHammerBtn();
@@ -970,6 +1024,7 @@ async function resolve(first){
     if(combo>=3 && maxL>=4) extra+=' 🔥x'+combo;
     if(maxL>=4) explosions++;
     uniq.forEach(k=>{ const p=k.split(','), f=board[+p[0]][+p[1]]; if(f>=0&&f<colors) collected[f]=(collected[f]||0)+1; });
+    comboFX(combo,uniq,maxL);
     score+=gain; msg(extra); buzz(maxL>=4?[40,40,70]:25); floatScore(uniq,'+'+gain);
     uniq.forEach(k=>{ const p=k.split(','), r=+p[0], c=+p[1];
       const el=boardEl.children[r*COLS+c]; if(el) el.classList.add('pop'); });
