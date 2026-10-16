@@ -236,6 +236,7 @@
     ⚡ <b>4 alignés</b> = fruit rayé (garde-le !)<br>
     🌈 <b>5 alignés</b> = bombe de couleur<br>
     ✨ <b>6 alignés</b> = combo légendaire<br>
+    🔥 Cascades x3, x4, x5… = combos jusqu'à l'infini !<br>
     🔄 Tous les déplacements sont permis (1 coup chacun)<br>
     📱 Glisse le doigt • 🖱️ Clique 2 fruits
   </div>
@@ -358,7 +359,15 @@ function goalText(L){ if(L.type==='collect') return 'Collecte <b>'+L.count+'</b>
 /* ===== ETAT ===== */
 const ROWS=8, COLS=8;
 let board=[], spec=[], score=0, movesLeft=0, curLevel=1, colors=6, busy=false, selected=null, started=false;
-let collected={}, explosions=0, lastSwap=null, hammerMode=false, pendingDrops=null, lastEarned=0;
+let collected={}, explosions=0, lastSwap=null, hammerMode=false, pendingDrops=null, lastEarned=0, maxCombo=0;
+function comboBonus(combo){ return combo>=3 ? (combo-2)*100 : 0; }
+function comboText(combo,gain){
+  if(combo>=5) return `🌈 COMBO EXTRÊME x${combo} +${gain} !`;
+  if(combo===4) return `🔥🔥 MÉGA COMBO x4 +${gain} !`;
+  if(combo===3) return `🔥 COMBO x3 +${gain} !`;
+  if(combo===2) return `🔗 Belle chaîne x2 +${gain}`;
+  return `+${gain} 😋`;
+}
 let save = JSON.parse(localStorage.getItem('fruitsCrushSave')||'{"unlocked":1,"stars":{}}');
 if(typeof save.sound==='undefined') save.sound=1;
 if(typeof save.tuto==='undefined') save.tuto=0;
@@ -684,7 +693,8 @@ async function resolve(first){
       for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
         if(board[r][c]===legendColor){ const k=r+','+c; if(k!==created && uniq.indexOf(k)<0) uniq.push(k); }
     }
-    let gain=uniq.length*10*combo+bonus, extra='';
+    let gain=uniq.length*10*combo+bonus+comboBonus(combo), extra='';
+    if(combo>maxCombo) maxCombo=combo;
     if(created){ extra=(maxL>=6?'🌈✨ LÉGENDAIRE x6 +':(maxL>=5?'🌈 Bombe créée +':'⚡ Fruit rayé créé +'))+gain; sWin(); }
     else if(maxL>=6){ gain+=500; extra='🌈✨ EXPLOSION LÉGENDAIRE +'+gain; sWin();
       const p0=uniq[0].split(','), col=board[+p0[0]][+p0[1]];
@@ -704,7 +714,8 @@ async function resolve(first){
       const u2=[...new Set(uniq)]; gain=u2.length*10*combo+120; extra='🎉 Explosion +'+gain;
       uniq.length=0; u2.forEach(k=>uniq.push(k));
     }
-    else { extra=(combo>1?`🔥 Combo x${combo} +${gain}`:`+${gain} 😋`); sPop(combo); }
+    else { extra=comboText(combo,gain); sPop(combo); }
+    if(combo>=3 && maxL>=4) extra+=' 🔥x'+combo;
     if(maxL>=4) explosions++;
     uniq.forEach(k=>{ const p=k.split(','), f=board[+p[0]][+p[1]]; if(f>=0&&f<colors) collected[f]=(collected[f]||0)+1; });
     score+=gain; msg(extra); buzz(maxL>=4?[40,40,70]:25); floatScore(uniq,'+'+gain);
@@ -808,7 +819,7 @@ function startLevel(n){
 function beginLevel(){
   const n=curLevel, L=LEVELS[n-1];
   colors=L.colors; score=0; movesLeft=L.moves; selected=null; busy=false; started=true;
-  collected={}; explosions=0; hammerMode=false; lastSwap=null;
+  collected={}; explosions=0; hammerMode=false; lastSwap=null; maxCombo=0;
   let boostNote='';
   if(save.nextBoost>0){ movesLeft+=save.nextBoost; boostNote=' 🍀 +'+save.nextBoost+' coups !'; save.nextBoost=0; persist(); }
   initBoard(); show('screen-game'); render(); hideModal(); refreshSound(); updateHammerBtn();
@@ -848,7 +859,7 @@ function animWin(stars,finalScore){
   setTimeout(step,450);
   const t0=Date.now();
   const tick=()=>{ const p=Math.min(1,(Date.now()-t0)/900), v=Math.round(finalScore*p);
-    try{ $('mText').textContent='Score : '+v+' pts • +'+lastEarned+' 🪙, +1 🔨'; }catch(e){}
+    try{ $('mText').textContent='Score : '+v+' pts • +'+lastEarned+' 🪙, +1 🔨'+(maxCombo>=2?' • Combo max x'+maxCombo:''); }catch(e){}
     if(p<1) setTimeout(tick,30); };
   tick();
 }
