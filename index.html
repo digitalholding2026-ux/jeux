@@ -27,7 +27,7 @@
   .blob.b1{width:220px;height:220px;background:#ffc9da;top:-60px;left:-60px}
   .blob.b2{width:260px;height:260px;background:#d3bdff;top:20%;right:-90px}
   .blob.b3{width:240px;height:240px;background:#bdefcd;bottom:-70px;left:10%}
-  .screen{width:min(94vw,440px);z-index:1;display:flex;flex-direction:column;align-items:center;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+  .screen{width:min(94vw,440px);z-index:1;display:flex;flex-direction:column;align-items:center;padding-bottom:calc(96px + env(safe-area-inset-bottom))}
   .hidden{display:none!important}
   /* HOME */
   .logo{margin-top:26px;text-align:center}
@@ -112,6 +112,15 @@
   body.dark .modalcard{background:#332944;color:#f2e9f5}
   body.dark .lvl.locked{background:#241d2e;color:#6f6280;box-shadow:none}
   body.dark .btn.secondary{background:#3a2f4d;color:#d9c7ff;border-color:#5a4a7a}
+  #tabbar{position:fixed;bottom:0;left:0;right:0;z-index:15;display:flex;gap:4px;padding:8px 10px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1.5px solid rgba(255,255,255,.9);box-shadow:0 -6px 20px rgba(160,107,255,.15)}
+  #tabbar.hidden{display:none}
+  .tabbtn{flex:1;border:none;background:transparent;border-radius:14px;padding:8px 2px;font-size:.68rem;font-weight:800;color:var(--ink-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .tabbtn .ico{font-size:1.3rem}
+  .tabbtn.active{color:var(--accent);background:#ffe9f1}
+  .shopitem{display:flex;align-items:center;gap:12px;margin-top:10px;text-align:left}
+  #screen-game{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+  body.dark #tabbar{background:rgba(40,32,55,.94);border-color:rgba(255,255,255,.08)}
+  body.dark .tabbtn.active{background:#3a2f4d;color:#ffb3c7}
 </style>
 </head>
 <body>
@@ -132,19 +141,6 @@
       <div class="stat"><b id="st-stars">0 ⭐</b><span>Étoiles</span></div>
       <div class="stat"><b id="st-done">0/50</b><span>Terminés</span></div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <button class="btn secondary small" id="btnSoundHome" style="flex:1">🔊 Son</button>
-      <button class="btn secondary small" id="btnMusicHome" style="flex:1">🎵 Musique</button>
-      <button class="btn secondary small" id="btnDarkHome" style="flex:1">🌙 Sombre</button>
-    </div>
-  </div>
-  <div class="card" style="font-size:.92rem;line-height:1.6">
-    🍎 Aligne <b>3 fruits ou +</b> : lignes, colonnes <b>et diagonales</b> 📐<br>
-    ⚡ <b>4 alignés</b> = fruit rayé (garde-le !)<br>
-    🌈 <b>5 alignés</b> = bombe de couleur<br>
-    ✨ <b>6 alignés</b> = combo légendaire<br>
-    📱 Glisse le doigt • 🖱️ Clique 2 fruits<br>
-    🔄 Tous les déplacements sont permis (1 coup chacun) !
   </div>
 </div>
 
@@ -158,6 +154,55 @@
   <div class="card" style="margin-top:14px;text-align:center;font-weight:700;color:var(--ink-soft)">Termine un niveau pour débloquer le suivant 🔓</div>
 </div>
 
+<!-- BOUTIQUE -->
+<div class="screen hidden" id="screen-shop">
+  <div class="topbar">
+    <h2>🛒 Boutique</h2>
+    <div style="flex:1"></div>
+    <div class="hudcard" style="min-width:110px"><span>Pièces</span><b>🪙 <span id="shopCoins">0</span></b></div>
+  </div>
+  <div id="shopMsg" style="min-height:24px;font-weight:800;margin-top:8px;text-align:center"></div>
+  <div class="card shopitem">
+    <div style="font-size:2rem">🔨</div>
+    <div style="flex:1"><b>Marteau ×1</b><br><small style="color:var(--ink-soft)">Brise un fruit sans utiliser de coup</small></div>
+    <button class="btn small" id="buyH1" style="width:auto">30 🪙</button>
+  </div>
+  <div class="card shopitem">
+    <div style="font-size:2rem">🔨</div>
+    <div style="flex:1"><b>Marteaux ×5</b><br><small style="color:var(--ink-soft)">Le lot malin (-20%)</small></div>
+    <button class="btn small" id="buyH5" style="width:auto">120 🪙</button>
+  </div>
+  <div class="card shopitem">
+    <div style="font-size:2rem">🍀</div>
+    <div style="flex:1"><b>Boost +3 coups</b><br><small style="color:var(--ink-soft)">Pour ton prochain niveau</small></div>
+    <button class="btn small" id="buyBoost" style="width:auto">50 🪙</button>
+  </div>
+  <div class="card" style="margin-top:12px;text-align:center;font-weight:700">🔨 En stock : <span id="shopHammers">0</span><br><span id="shopBoostState" style="color:var(--ink-soft)"></span><br><small style="color:var(--ink-soft)">Gagne des 🪙 en terminant des niveaux !</small></div>
+</div>
+
+<!-- RÉGLAGES -->
+<div class="screen hidden" id="screen-settings">
+  <div class="topbar">
+    <h2>⚙️ Réglages</h2>
+  </div>
+  <div class="card">
+    <button class="btn secondary" id="setSound">🔊 Son</button>
+    <button class="btn secondary" id="setMusic">🎵 Musique</button>
+    <button class="btn secondary" id="setDark">🌙 Sombre</button>
+    <button class="btn secondary" id="btnReset" style="color:#ff3d71;border-color:#ffc9da">🗑️ Réinitialiser la progression</button>
+  </div>
+  <div class="card" style="font-size:.92rem;line-height:1.7">
+    <b>❓ Comment jouer</b><br>
+    🍎 Aligne <b>3 fruits ou +</b> : lignes, colonnes <b>et diagonales</b><br>
+    ⚡ <b>4 alignés</b> = fruit rayé (garde-le !)<br>
+    🌈 <b>5 alignés</b> = bombe de couleur<br>
+    ✨ <b>6 alignés</b> = combo légendaire<br>
+    🔄 Tous les déplacements sont permis (1 coup chacun)<br>
+    📱 Glisse le doigt • 🖱️ Clique 2 fruits
+  </div>
+  <div class="card" style="text-align:center;color:var(--ink-soft);font-weight:700">Fruits Crush v1.0 🍓</div>
+</div>
+
 <!-- PRE-NIVEAU -->
 <div class="screen hidden" id="screen-pre">
   <div class="topbar">
@@ -168,6 +213,7 @@
     <div style="font-size:1.7rem;font-weight:900" id="preNum">Niveau 1</div>
     <div id="preGoal" style="font-weight:800;margin:8px 0;font-size:1.05rem"></div>
     <div id="preBest" style="color:var(--ink-soft);font-weight:700"></div>
+    <div id="preBoost" style="font-weight:800;color:#2e9e5b"></div>
     <div class="row" style="margin-top:12px;align-items:center;justify-content:space-between;font-weight:800">
       <div>🪙 <span id="preCoins">0</span></div>
       <div>🔨 <span id="preHammers">3</span> <button class="btn small" id="btnBuyHammer" style="width:auto;padding:8px 14px">+1 (30 🪙)</button></div>
@@ -201,6 +247,13 @@
 </div>
 
 <!-- MODAL FIN -->
+<div id="tabbar">
+  <button class="tabbtn active" id="tabHome"><span class="ico">🏠</span>Accueil</button>
+  <button class="tabbtn" id="tabLevels"><span class="ico">🗺️</span>Niveaux</button>
+  <button class="tabbtn" id="tabShop"><span class="ico">🛒</span>Boutique</button>
+  <button class="tabbtn" id="tabSettings"><span class="ico">⚙️</span>Réglages</button>
+</div>
+
 <div id="modal" class="hidden">
   <div class="modalcard">
     <div class="big" id="mEmoji">🎉</div>
@@ -271,12 +324,36 @@ if(typeof save.coins==='undefined') save.coins=0;
 if(typeof save.hammers==='undefined') save.hammers=3;
 if(typeof save.music==='undefined') save.music=1;
 if(typeof save.dark==='undefined') save.dark=0;
+if(typeof save.nextBoost==='undefined') save.nextBoost=0;
 
 const $=id=>document.getElementById(id);
 const boardEl=$('board'), msgEl=$('msg');
 
 function persist(){ localStorage.setItem('fruitsCrushSave', JSON.stringify(save)); }
-function show(id){ ['screen-home','screen-levels','screen-pre','screen-game'].forEach(s=>$(s).classList.add('hidden')); $(id).classList.remove('hidden'); }
+function show(id){ ['screen-home','screen-levels','screen-shop','screen-settings','screen-pre','screen-game'].forEach(s=>$(s).classList.add('hidden')); $(id).classList.remove('hidden'); updateTabs(id); }
+function updateTabs(id){
+  const map={'screen-home':'tabHome','screen-levels':'tabLevels','screen-shop':'tabShop','screen-settings':'tabSettings','screen-pre':'tabLevels'};
+  ['tabHome','tabLevels','tabShop','tabSettings'].forEach(t=>{ const el=$(t); if(el) el.classList.toggle('active', map[id]===t); });
+  const tb=$('tabbar'); if(tb) tb.classList.toggle('hidden', id==='screen-game');
+}
+function goTab(id){
+  if(started && score>0 && !confirm('Quitter le niveau en cours ? La progression sera perdue.')) return;
+  if(started){ started=false; selected=null; }
+  if(id==='screen-levels') buildLevels();
+  if(id==='screen-shop') updateShop();
+  if(id==='screen-home') refreshHome();
+  show(id);
+}
+function updateShop(){
+  $('shopCoins').textContent=save.coins||0;
+  $('shopHammers').textContent=save.hammers||0;
+  $('shopBoostState').textContent=save.nextBoost?('🍀 Boost +'+save.nextBoost+' coups actif pour le prochain niveau !'):'Aucun boost actif';
+}
+function shopMsg(t){ $('shopMsg').textContent=t; }
+function buyHammer(n,cost){
+  if((save.coins||0)>=cost){ save.coins-=cost; save.hammers=(save.hammers||0)+n; persist(); updateShop(); updateHammerBtn(); shopMsg('✅ Acheté ! Bonne chance 🍓'); tone(880,.12); }
+  else { shopMsg('🪙 Pas assez de pièces ! Termine des niveaux.'); tone(200,.2,'sawtooth',.07); }
+}
 function rand(n){ return Math.floor(Math.random()*n); }
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
@@ -595,10 +672,10 @@ function refreshHome(){
 }
 function applyTheme(){ document.body.classList.toggle('dark',!!save.dark); }
 function refreshHomeToggles(){
-  if(!$('btnSoundHome')) return;
-  $('btnSoundHome').textContent=save.sound?'🔊 Son':'🔇 Muet';
-  $('btnMusicHome').textContent=save.music?'🎵 Musique':'🚫 Musique';
-  $('btnDarkHome').textContent=save.dark?'☀️ Clair':'🌙 Sombre';
+  if(!$('setSound')) return;
+  $('setSound').textContent=save.sound?'🔊 Son : ON':'🔇 Son : OFF';
+  $('setMusic').textContent=save.music?'🎵 Musique : ON':'🚫 Musique : OFF';
+  $('setDark').textContent=save.dark?'☀️ Thème clair':'🌙 Thème sombre';
 }
 function buildLevels(){
   const g=$('levelGrid'); g.innerHTML='';
@@ -625,6 +702,7 @@ function updatePre(){
   $('preBest').textContent=st?('Record : '+'⭐'.repeat(st)):'Pas encore terminé';
   $('preCoins').textContent=save.coins||0;
   $('preHammers').textContent=save.hammers||0;
+  $('preBoost').textContent=save.nextBoost?('🍀 Boost +'+save.nextBoost+' coups pour cette partie !'):'';
 }
 function buyHammer(){
   if((save.coins||0)>=30){ save.coins-=30; save.hammers=(save.hammers||0)+1; persist(); updatePre(); updateHammerBtn(); tone(880,.12); }
@@ -637,8 +715,10 @@ function beginLevel(){
   const n=curLevel, L=LEVELS[n-1];
   colors=L.colors; score=0; movesLeft=L.moves; selected=null; busy=false; started=true;
   collected={}; explosions=0; hammerMode=false; lastSwap=null;
+  let boostNote='';
+  if(save.nextBoost>0){ movesLeft+=save.nextBoost; boostNote=' 🍀 +'+save.nextBoost+' coups !'; save.nextBoost=0; persist(); }
   initBoard(); show('screen-game'); render(); hideModal(); refreshSound(); updateHammerBtn();
-  msg('Niveau '+n+' — '+L.moves+' coups 🍓');
+  msg('Niveau '+n+' — '+movesLeft+' coups 🍓'+boostNote);
   if(n===1 && !save.tuto){ save.tuto=1; persist();
     setTimeout(()=>{ if(started&&curLevel===1&&!busy) $('btnHint').click(); },900); }
 }
@@ -705,9 +785,21 @@ $('btnHint').onclick=()=>{
       setTimeout(()=>{ h1.classList.remove('hint'); h2.classList.remove('hint'); },1400); return; }
   }
 };
-$('btnSoundHome').onclick=()=>{ save.sound=save.sound?0:1; persist(); refreshSound(); refreshHomeToggles(); tone(700,.1); };
-$('btnMusicHome').onclick=()=>{ save.music=save.music?0:1; persist(); refreshHomeToggles(); };
-$('btnDarkHome').onclick=()=>{ save.dark=save.dark?0:1; persist(); applyTheme(); refreshHomeToggles(); };
+$('setSound').onclick=()=>{ save.sound=save.sound?0:1; persist(); refreshSound(); refreshHomeToggles(); tone(700,.1); };
+$('setMusic').onclick=()=>{ save.music=save.music?0:1; persist(); refreshHomeToggles(); };
+$('setDark').onclick=()=>{ save.dark=save.dark?0:1; persist(); applyTheme(); refreshHomeToggles(); };
+$('btnReset').onclick=()=>{ if(confirm('Effacer toute la progression (niveaux, étoiles, pièces) ?')){ try{ localStorage.removeItem('fruitsCrushSave'); }catch(e){} location.reload(); } };
+$('tabHome').onclick=()=>goTab('screen-home');
+$('tabLevels').onclick=()=>goTab('screen-levels');
+$('tabShop').onclick=()=>goTab('screen-shop');
+$('tabSettings').onclick=()=>goTab('screen-settings');
+$('buyH1').onclick=()=>buyHammer(1,30);
+$('buyH5').onclick=()=>buyHammer(5,120);
+$('buyBoost').onclick=()=>{
+  if(save.nextBoost){ shopMsg('🍀 Boost déjà actif !'); return; }
+  if((save.coins||0)>=50){ save.coins-=50; save.nextBoost=3; persist(); updateShop(); shopMsg('✅ Boost activé pour le prochain niveau !'); tone(880,.12); }
+  else { shopMsg('🪙 Pas assez de pièces ! Termine des niveaux.'); tone(200,.2,'sawtooth',.07); }
+};
 $('btnPreBack').onclick=()=>{ buildLevels(); show('screen-levels'); };
 $('btnGo').onclick=()=>{ startMusic(); beginLevel(); };
 $('btnBuyHammer').onclick=()=>buyHammer();
@@ -716,7 +808,7 @@ $('mBtnRetry').onclick=()=>beginLevel();
 $('mBtnMap').onclick=()=>{ hideModal(); buildLevels(); show('screen-levels'); };
 $('mBtnNext').onclick=()=>startLevel(Math.min(50,curLevel+1));
 
-refreshHome(); refreshHomeToggles(); applyTheme(); buildLevels();
+refreshHome(); refreshHomeToggles(); applyTheme(); buildLevels(); updateTabs('screen-home');
 </script>
 </body>
 </html>
