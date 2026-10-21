@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -35,7 +34,7 @@ namespace ColorFlow.Editor
 
         public static void BuildAndroidDebug()
         {
-            var stopwatch = Stopwatch.StartNew();
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             try
             {

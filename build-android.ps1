@@ -64,15 +64,29 @@ Write-Host "APK      : $ApkPath"
 Write-Host "Log      : $LogFile"
 Write-Host ""
 
+if (-not $env:ANDROID_NDK_HOME) {
+    Write-Host "AVERTISSEMENT : ANDROID_NDK_HOME n'est pas defini." -ForegroundColor Yellow
+    Write-Host "  Unity 6000.0.23f1 exige le NDK r23b (23.1.7779620) et ne le resout pas" -ForegroundColor Yellow
+    Write-Host "  toujours via External Tools. Voir BUILD.md section 9.3." -ForegroundColor Yellow
+    Write-Host ""
+}
+
 $start = Get-Date
 
-& $UnityBin -batchmode -nographics -quit `
-    -projectPath $ProjectPath `
-    -buildTarget Android `
-    -executeMethod $ExecuteMethod `
-    -logFile $LogFile
+# Unity.exe est une application GUI : le call operator PowerShell ne l'attend pas.
+# Start-Process -Wait est obligatoire pour recuperer le vrai code de sortie.
+$unityArgs = @(
+    '-batchmode',
+    '-nographics',
+    '-quit',
+    '-projectPath', "`"$ProjectPath`"",
+    '-buildTarget', 'Android',
+    '-executeMethod', $ExecuteMethod,
+    '-logFile', "`"$LogFile`""
+)
 
-$status = $LASTEXITCODE
+$process = Start-Process -FilePath $UnityBin -ArgumentList $unityArgs -Wait -PassThru -NoNewWindow
+$status = $process.ExitCode
 $duration = [int](((Get-Date) - $start).TotalSeconds)
 
 Write-Host ""
