@@ -1,0 +1,8 @@
+# Scripts shell : LF obligatoire (exécution sous Git Bash / Linux / macOS).
+*.sh text eol=lf
+
+# Fichiers Unity : LF (évite les diffs de fin de ligne sur les assets YAML).
+*.meta text eol=lf
+*.unity text eol=lf
+*.asset text eol=lf
+*.prefab text eol=lf
