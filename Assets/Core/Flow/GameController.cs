@@ -85,7 +85,7 @@ namespace ColorFlow.Core
                 return;
             }
 
-            Spawner.Tick(deltaTime, Grid, _random);
+            Spawner.Tick(deltaTime, Grid, Conveyor.Items, _random);
         }
 
         /// <summary>Tap sur une créature du tapis roulant.</summary>
@@ -137,7 +137,7 @@ namespace ColorFlow.Core
                 return null;
             }
 
-            return Spawner.SpawnNow(Grid, _random);
+            return Spawner.SpawnNow(Grid, Conveyor.Items, _random);
         }
 
         /// <summary>Relance le niveau courant.</summary>
