@@ -12,7 +12,7 @@ namespace ColorFlow.Game.Presentation
     [DefaultExecutionOrder(-100)]
     public sealed class GameSceneController : MonoBehaviour
     {
-        [SerializeField] private LevelData levelOverride;
+        [SerializeField] private LevelData levelOverride = null;
 
         private GameController _game;
         private GridView _gridView;
@@ -113,9 +113,15 @@ namespace ColorFlow.Game.Presentation
 
         private void StartLevel(LevelData data)
         {
-            if (data == null || !data.TryBuild(out var definition, out var error))
+            if (data == null)
             {
-                Debug.LogError("Aucun niveau jouable : " + (data == null ? "catalogue Resources/Levels vide" : error));
+                Debug.LogError("Aucun niveau jouable : catalogue Resources/Levels vide.");
+                return;
+            }
+
+            if (!data.TryBuild(out var definition, out var error))
+            {
+                Debug.LogError("Niveau invalide : " + error);
                 return;
             }
 

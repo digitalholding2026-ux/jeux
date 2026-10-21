@@ -35,7 +35,7 @@ namespace ColorFlow.Game.Presentation
             for (var i = 0; i < capacity; i++)
             {
                 var index = i;
-                var image = UiFactory.CreateImage("Slot_" + i, _root, Color.clear, true);
+                var image = UiFactory.CreateImage("Slot_" + i, root, Color.clear, true);
                 var rect = image.rectTransform;
                 rect.anchorMin = new Vector2(0.5f, 0.5f);
                 rect.anchorMax = new Vector2(0.5f, 0.5f);
