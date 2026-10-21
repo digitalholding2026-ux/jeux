@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Outil de vérification hors Unity : compile Assets/Core et les tests EditMode
+    avec le compilateur .NET, sans aucune référence UnityEngine.
+    Cela prouve que Core/ est pur C# et permet de lancer les tests EditMode
+    sur une machine ou une CI sans Unity installé.
+
+    Ce projet n'est PAS utilisé par Unity (hors du dossier Assets/).
+    Usage : dotnet test Tools/CoreTests/CoreTests.csproj
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>ColorFlow.CoreTests</AssemblyName>
+    <RootNamespace>ColorFlow.Tests</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Assets\Core\**\*.cs" />
+    <Compile Include="..\..\Assets\Tests\EditMode\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+
+</Project>

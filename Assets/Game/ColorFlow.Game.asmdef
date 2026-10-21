@@ -1,0 +1,16 @@
+{
+    "name": "ColorFlow.Game",
+    "rootNamespace": "ColorFlow.Game",
+    "references": [
+        "ColorFlow.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
