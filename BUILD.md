@@ -259,9 +259,10 @@ Le log complet d'un build Unity fait plusieurs milliers de lignes : chercher d'a
   automatisée : `build-android.ps1` résout le JDK 17 et le NDK r23b s'ils sont aux
   emplacements portables connus, mais une installation standard doit être configurée
   une fois (§9.3).
-- Le premier build complet a duré **1 044 s** (~17 min) ; le build complet de la
-  livraison Hotfix 2.5 + Sprint 4 a duré **1 246 s** (~21 min), cache `Library/`
-  chaud mais scripts et assets modifiés. Ces valeurs dépendent de la machine.
+- Le premier build complet a duré **1 044 s** (~17 min) ; le premier build de la
+  livraison Hotfix 2.5 + Sprint 4 a duré **1 246 s** (~21 min), et le rebuild final
+  après ajustement UI **170 s**. Ces valeurs dépendent de la machine et du cache
+  `Library/`.
 - L'APK n'a été ni installé ni lancé sur un appareil : voir `TEST_PROTOCOL.md`,
   à exécuter par le lead.
 
@@ -280,11 +281,11 @@ sans aucune modification manuelle du projet entre la commande et l'APK.
 | Unity | 6000.0.23f1 (1c4764c07fb4), revision 1853284 |
 | Sortie | `Builds/Android/colorflow-debug.apk` |
 | Version | `versionName=0.2.0`, `versionCode=3` |
-| Taille | 39 464 900 octets (37,64 Mo) |
-| Durée totale | 1 246 s (build complet IL2CPP de cette livraison) ; 1 044 s pour le tout premier build |
+| Taille | 47 953 519 octets (45,73 Mo) |
+| Durée totale | 1 246 s pour le premier build complet ; 170 s pour le rebuild final (relink, 151 s côté Unity) |
 | Code de sortie Unity | 0 |
-| Erreurs / avertissements | 0 / 0 |
-| SHA-256 | `5C09C3B8AA8212F6E06C6823B2E1D1EDE56246122C627ACA67C25DC5898FB5B3` |
+| Erreurs / avertissements | 0 / 1 (avertissements IL2CPP TextCore, non bloquants) |
+| SHA-256 | `4429017ED35D0DD67574324D550BF354A91F8D6CCB6C34FFF5B91CBB787BA4F4` |
 | Log complet | `Builds/build.log` (marqueur final `[ColorFlow][Build] SUCCES`) |
 
 ### 9.2 Vérification du contenu de l'APK

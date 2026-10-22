@@ -10,7 +10,7 @@
 | **Moteur** | Unity 6000.0.23f1, Built-in 2D, IL2CPP ARMv7 + ARM64 |
 | **Contrainte respectée** | zéro asset externe : visuels, icônes et sons générés par le code |
 | **Tests** | 109 EditMode/Core + 9 PlayMode, **tous verts** |
-| **APK** | `Builds/Android/colorflow-debug.apk` — 37,64 Mo |
+| **APK** | `Builds/Android/colorflow-debug.apk` — 45,73 Mo |
 
 ---
 
@@ -72,13 +72,14 @@ layout est ancré :
 | Sous-titre | haut-centre | −186 px |
 | Portefeuille | haut-droite | marge 24 / 20 px |
 | Cartes de niveaux | haut-centre | grille 3 colonnes, à partir de −286 px |
-| JOUER | bas-centre | marge 24 px, 620×176 |
-| BOUTIQUE | bas-droite | marge 24 px, 336×124 |
+| JOUER | bas-centre | marge 24 px, 580×176 |
+| BOUTIQUE | bas-droite | marge 24 px, 320×124 |
 | Aide | bas-centre | au-dessus de la barre de boutons |
 
-Les cartes font 300×132 avec 26×22 px d'espacement ; le nombre de lignes s'adapte
-au nombre de niveaux visibles (2 ou 3). Aucun élément ne dépend plus du centre
-absolu de l'écran.
+Les cartes font 296×132 avec 24×22 px d'espacement ; le nombre de lignes s'adapte
+au nombre de niveaux visibles (2 ou 3). Les libellés longs passent en
+`resizeTextForBestFit` (18–32 px) pour ne jamais être tronqués. Aucun élément ne
+dépend plus du centre absolu de l'écran.
 
 ### 2.3 Bouton BOUTIQUE et icône dessinée
 
@@ -408,16 +409,17 @@ powershell -ExecutionPolicy Bypass -File .\build-android.ps1
 
 Le script vérifie le JDK 17, le NDK r23b, lance Unity en batchmode
 (`BuildScript.BuildAndroidDebug`), contrôle avec `aapt` qu'une **activité lançable**
-existe, puis calcule le SHA-256. Durée mesurée : **1246 s** (20 min 46 s), build
-IL2CPP complet.
+existe, puis calcule le SHA-256. Le premier build complet de cette livraison a pris
+**1246 s** (20 min 46 s) ; le rebuild final après l'ajustement de la barre de
+boutons a pris **170 s** (relink incrémental, 151 s côté Unity).
 
 ### 8.2 Artefact
 
 | | |
 |---|---|
 | **Chemin** | `Builds/Android/colorflow-debug.apk` |
-| **Taille** | 39 464 900 octets (37,64 Mo) |
-| **SHA-256** | `5C09C3B8AA8212F6E06C6823B2E1D1EDE56246122C627ACA67C25DC5898FB5B3` |
+| **Taille** | 47 953 519 octets (45,73 Mo) |
+| **SHA-256** | `4429017ED35D0DD67574324D550BF354A91F8D6CCB6C34FFF5B91CBB787BA4F4` |
 | **Package** | `com.digitalholding.colorflow` |
 | **Version** | 0.2.0 — versionCode 3 |
 | **SDK** | minSdk 23, targetSdk 35, compileSdk 35 |
@@ -501,5 +503,5 @@ recette device.
 **Conclusion** — Le hotfix 2.5 et le Sprint 4 sont livrés : UI ancrée dans l'aire
 sûre, boutique réactive et persistante, glisser-déposer complet, match-3 avec
 spéciaux, objectifs, chrono permanent, révélation de victoire et niveau secret. Les
-109 tests EditMode/Core et les 9 tests PlayMode passent, et l'APK debug de 37,64 Mo
+109 tests EditMode/Core et les 9 tests PlayMode passent, et l'APK debug de 45,73 Mo
 est généré et vérifié.

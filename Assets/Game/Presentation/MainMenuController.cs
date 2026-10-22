@@ -122,7 +122,7 @@ namespace ColorFlow.Game.Presentation
                 new Vector2(0.5f, 1f),
                 new Vector2(0.5f, 1f),
                 new Vector2(0f, -16f),
-                new Vector2(1000f, 168f));
+                new Vector2(900f, 168f));
 
             var subtitle = UiFactory.CreateText(
                 "Subtitle",
@@ -137,7 +137,7 @@ namespace ColorFlow.Game.Presentation
                 new Vector2(0.5f, 1f),
                 new Vector2(0.5f, 1f),
                 new Vector2(0f, -186f),
-                new Vector2(900f, 62f));
+                new Vector2(860f, 62f));
 
             TweenRunner.Run(Tween.PopIn(title.transform, 0.6f));
         }
@@ -224,7 +224,7 @@ namespace ColorFlow.Game.Presentation
                 new Vector2(1f, 0f),
                 new Vector2(1f, 0f),
                 new Vector2(-24f, 46f),
-                new Vector2(336f, 124f));
+                new Vector2(320f, 124f));
 
             // Icône dessinée par le code (sac de boutique) + libellé décalé.
             var face = shop.transform.Find("Face");
@@ -233,7 +233,14 @@ namespace ColorFlow.Game.Presentation
                 var label = face.Find("Label")?.GetComponent<RectTransform>();
                 if (label != null)
                 {
-                    UiFactory.Stretch(label, 104f, 12f, 12f, 6f);
+                    UiFactory.Stretch(label, 96f, 12f, 12f, 6f);
+                    var labelText = label.GetComponent<Text>();
+                    if (labelText != null)
+                    {
+                        labelText.resizeTextForBestFit = true;
+                        labelText.resizeTextMinSize = 18;
+                        labelText.resizeTextMaxSize = 32;
+                    }
                 }
 
                 var icon = UiFactory.CreateImage("ShopIcon", face, Color.white);
@@ -297,9 +304,9 @@ namespace ColorFlow.Game.Presentation
 
             var count = _levels.Length;
             const int columns = 3;
-            const float width = 300f;
+            const float width = 296f;
             const float chipHeight = 132f;
-            const float gapX = 26f;
+            const float gapX = 24f;
             const float gapY = 22f;
             const float firstY = -286f;
 
@@ -346,6 +353,9 @@ namespace ColorFlow.Game.Presentation
                     JuicePalette.Ink,
                     TextAnchor.MiddleCenter);
                 UiFactory.Stretch(label.rectTransform, 12f, 44f, 12f, 8f);
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = 18;
+                label.resizeTextMaxSize = 32;
 
                 BuildPaletteDots(panel.transform, level);
 
@@ -427,8 +437,8 @@ namespace ColorFlow.Game.Presentation
                 new Vector2(0.5f, 0f),
                 new Vector2(0.5f, 0f),
                 new Vector2(0.5f, 0f),
-                new Vector2(-176f, 24f),
-                new Vector2(620f, 176f));
+                new Vector2(-200f, 24f),
+                new Vector2(580f, 176f));
 
             play.onClick.AddListener(StartSelected);
         }
