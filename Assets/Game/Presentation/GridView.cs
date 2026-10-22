@@ -20,6 +20,8 @@ namespace ColorFlow.Game.Presentation
             public Image Ghost;
             public Image Fill;
             public Image Gloss;
+            public Image Blob;
+            public Image Highlight;
         }
 
         private readonly RectTransform _root;
@@ -115,13 +117,33 @@ namespace ColorFlow.Game.Presentation
             glossRect.anchoredPosition = new Vector2(-_cellSize * 0.10f, _cellSize * 0.24f);
             gloss.color = JuicePalette.WithAlpha(JuicePalette.Gloss, 0.30f);
 
+            // Blob posé par le joueur (match-3), au-dessus du fantôme.
+            var blob = UiFactory.CreateImage("PlacedBlob", cellRoot, Color.white);
+            blob.sprite = ArtFactory.Blob();
+            blob.preserveAspect = true;
+            UiFactory.SetRect(
+                blob.rectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(_cellSize * 0.94f, _cellSize * 0.94f));
+            blob.enabled = false;
+
+            // Surbrillance de cible pendant le drag & drop.
+            var highlight = UiFactory.CreateRounded("Highlight", cellRoot, Color.clear, _cellSize * 0.36f);
+            UiFactory.Stretch(highlight.rectTransform, -4f, -4f, -4f, -4f);
+            highlight.enabled = false;
+
             return new CellVisual
             {
                 Root = cellRoot,
                 Hole = hole,
                 Ghost = ghost,
                 Fill = fill,
-                Gloss = gloss
+                Gloss = gloss,
+                Blob = blob,
+                Highlight = highlight
             };
         }
 
@@ -156,6 +178,23 @@ namespace ColorFlow.Game.Presentation
             var ghostColor = Color.Lerp(Color.white, color, GhostTint);
             cell.Ghost.color = ghostColor;
             cell.Ghost.enabled = _grid.HasTargetAt(x, y) && !painted;
+
+            var occupied = _grid.IsOccupied(x, y);
+            if (cell.Blob != null)
+            {
+                var show = occupied && !painted;
+                if (show)
+                {
+                    cell.Blob.color = UiFactory.ToColor(_grid.OccupiedColorAt(x, y));
+                }
+
+                if (show && !cell.Blob.enabled && animate)
+                {
+                    TweenRunner.Run(Tween.PopIn(cell.Blob.transform, 0.22f));
+                }
+
+                cell.Blob.enabled = show;
+            }
 
             if (painted && !_painted[index])
             {
@@ -207,6 +246,105 @@ namespace ColorFlow.Game.Presentation
 
             var cell = _cells[y * _builtWidth + x];
             return cell.Root != null ? (Vector2)_root.InverseTransformPoint(cell.Root.position) : Vector2.zero;
+        }
+
+        /// <summary>Fait « popper » une case déjà peinte (révélation de victoire).</summary>
+        public void PulseCell(int x, int y)
+        {
+            if (_cells == null || x < 0 || y < 0 || x >= _builtWidth || y >= _builtHeight)
+            {
+                return;
+            }
+
+            var cell = _cells[y * _builtWidth + x];
+            if (cell.Fill == null || !cell.Fill.enabled)
+            {
+                return;
+            }
+
+            TweenRunner.Run(Tween.PopIn(cell.Fill.transform, 0.26f));
+        }
+
+        /// <summary>Met en évidence une case survolée pendant un glisser.</summary>
+        public void SetHighlight(int x, int y, Color color)
+        {
+            if (_cells == null || x < 0 || y < 0 || x >= _builtWidth || y >= _builtHeight)
+            {
+                return;
+            }
+
+            var cell = _cells[y * _builtWidth + x];
+            if (cell.Highlight == null)
+            {
+                return;
+            }
+
+            cell.Highlight.enabled = true;
+            cell.Highlight.color = new Color(color.r, color.g, color.b, 0.55f);
+        }
+
+        /// <summary>Efface toutes les surbrillances (fin de drag).</summary>
+        public void ClearHighlights()
+        {
+            if (_cells == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < _cells.Length; i++)
+            {
+                if (_cells[i].Highlight != null)
+                {
+                    _cells[i].Highlight.enabled = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Convertit un point écran (doigt / souris) en coordonnées de case.
+        /// Retourne false au-dessus d'un espace entre les cases.
+        /// </summary>
+        public bool TryScreenPointToCell(Vector2 screenPosition, Camera camera, out int x, out int y)
+        {
+            x = -1;
+            y = -1;
+
+            if (_grid == null || _cells == null || _cellSize <= 0f)
+            {
+                return false;
+            }
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _root,
+                    screenPosition,
+                    camera,
+                    out var local))
+            {
+                return false;
+            }
+
+            var totalWidth = _cellSize * _builtWidth + Gap * (_builtWidth - 1);
+            var totalHeight = _cellSize * _builtHeight + Gap * (_builtHeight - 1);
+            var fx = (local.x + totalWidth * 0.5f) / (_cellSize + Gap);
+            var fy = (totalHeight * 0.5f - local.y) / (_cellSize + Gap);
+
+            var cx = Mathf.FloorToInt(fx);
+            var cy = Mathf.FloorToInt(fy);
+            if (cx < 0 || cy < 0 || cx >= _builtWidth || cy >= _builtHeight)
+            {
+                return false;
+            }
+
+            var withinX = local.x + totalWidth * 0.5f - cx * (_cellSize + Gap);
+            var withinY = totalHeight * 0.5f - local.y - cy * (_cellSize + Gap);
+            if (withinX < 0f || withinX > _cellSize || withinY < 0f || withinY > _cellSize)
+            {
+                return false;
+            }
+
+            x = cx;
+            y = cy;
+            return true;
         }
 
         /// <summary>Position monde (espace Canvas) du centre d'une case, pour les particules.</summary>

@@ -553,6 +553,41 @@ namespace ColorFlow.Game.Presentation
             });
         }
 
+        /// <summary>Sac de boutique : icône blanche à teinter par l'Image appelante.</summary>
+        public static Sprite ShopIcon(int size = 128)
+        {
+            return BuildIcon("icon_shop_" + size, size, (px, py) =>
+            {
+                var body = RoundedBoxDistance(px, py, 0f, -0.10f, 0.54f, 0.46f, 0.14f);
+                var ring = Mathf.Abs(CircleDistance(px, py, 0f, 0.34f, 0.27f)) - 0.065f;
+                var handle = py > 0.30f ? ring : 1f;
+                var distance = Mathf.Min(body, handle);
+                if (distance > 0f)
+                {
+                    return Transparent;
+                }
+
+                var alpha = Mathf.Clamp01(0.5f - distance * size * 0.5f);
+                Color32 color = new Color32(255, 255, 255, 255);
+
+                // Rabat supérieur légèrement grisé pour lire la forme sur fond clair.
+                if (body <= 0f && py > 0.10f)
+                {
+                    color = new Color32(226, 234, 248, 255);
+                }
+
+                // Deux boutons de couture.
+                if (CircleDistance(px, py, -0.16f, -0.12f, 0.045f) <= 0f ||
+                    CircleDistance(px, py, 0.16f, -0.12f, 0.045f) <= 0f)
+                {
+                    color = new Color32(190, 205, 228, 255);
+                }
+
+                color.a = (byte)(alpha * 255f);
+                return color;
+            });
+        }
+
         /// <summary>Blob multicolore de la créature arc-en-ciel (yeux conservés).</summary>
         public static Sprite RainbowBlob(int size = BlobTextureSize)
         {

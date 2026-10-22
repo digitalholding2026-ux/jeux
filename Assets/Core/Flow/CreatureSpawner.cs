@@ -101,6 +101,23 @@ namespace ColorFlow.Core
         }
 
         /// <summary>
+        /// Crée un blob spécial gagné par un alignement (4 = ligne, 5 = bombe).
+        /// L'événement <see cref="Spawned"/> est déclenché : le contrôleur
+        /// l'ajoute au tapis comme une créature normale.
+        /// </summary>
+        public Creature CreateSpecial(RgbaColor color, CreatureKind kind)
+        {
+            if (kind == CreatureKind.Normal)
+            {
+                throw new ArgumentException("Un blob spécial ne peut pas être de type Normal.", nameof(kind));
+            }
+
+            var creature = new Creature(_nextId++, color, kind);
+            Spawned?.Invoke(creature);
+            return creature;
+        }
+
+        /// <summary>
         /// Tire le type de la créature : normale, ou l'une des trois spéciales.
         /// La couleur reste tirée par la règle d'équité : une spéciale ne peut
         /// donc jamais être « morte ».

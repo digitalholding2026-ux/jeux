@@ -3,8 +3,8 @@
 Ce document décrit comment produire **`Builds/Android/colorflow-debug.apk`** à partir du
 projet Unity, en GUI ou en ligne de commande (batchmode).
 
-> **Statut de vérification (Sprint 2)** : le pipeline ci-dessous a été **exécuté
-> avec succès** sur la machine de l'agent pour l'APK **v0.2.0**. APK produit, mesuré
+> **Statut de vérification (Hotfix 2.5 + Sprint 4)** : le pipeline ci-dessous a été
+> **exécuté avec succès** sur la machine de l'agent pour l'APK **v0.2.0**. APK produit, mesuré
 > et vérifié (`aapt dump badging`). Voir §9 « Résultat du build » pour les valeurs
 > exactes (version d'Unity, taille, durée, SHA-256). La validation **device** reste
 > à faire par le lead via `TEST_PROTOCOL.md`.
@@ -259,9 +259,9 @@ Le log complet d'un build Unity fait plusieurs milliers de lignes : chercher d'a
   automatisée : `build-android.ps1` résout le JDK 17 et le NDK r23b s'ils sont aux
   emplacements portables connus, mais une installation standard doit être configurée
   une fois (§9.3).
-- Le premier build complet a duré **1 044 s** (~17 min) ; les builds incrémentaux
-  du Sprint 2 ont pris **137 s**. Ces valeurs dépendent de la machine et du cache
-  `Library/`.
+- Le premier build complet a duré **1 044 s** (~17 min) ; le build complet de la
+  livraison Hotfix 2.5 + Sprint 4 a duré **1 246 s** (~21 min), cache `Library/`
+  chaud mais scripts et assets modifiés. Ces valeurs dépendent de la machine.
 - L'APK n'a été ni installé ni lancé sur un appareil : voir `TEST_PROTOCOL.md`,
   à exécuter par le lead.
 
@@ -280,11 +280,11 @@ sans aucune modification manuelle du projet entre la commande et l'APK.
 | Unity | 6000.0.23f1 (1c4764c07fb4), revision 1853284 |
 | Sortie | `Builds/Android/colorflow-debug.apk` |
 | Version | `versionName=0.2.0`, `versionCode=3` |
-| Taille | 39 427 851 octets (37,60 Mo) |
-| Durée totale | 137 s (build incrémental) ; 1 044 s pour le premier build complet |
+| Taille | 39 464 900 octets (37,64 Mo) |
+| Durée totale | 1 246 s (build complet IL2CPP de cette livraison) ; 1 044 s pour le tout premier build |
 | Code de sortie Unity | 0 |
 | Erreurs / avertissements | 0 / 0 |
-| SHA-256 | `C684FAA63D7C8E8508636DE61EFA0EE3BF5F9F1FABABF42765AFB6C13876854D` |
+| SHA-256 | `5C09C3B8AA8212F6E06C6823B2E1D1EDE56246122C627ACA67C25DC5898FB5B3` |
 | Log complet | `Builds/build.log` (marqueur final `[ColorFlow][Build] SUCCES`) |
 
 ### 9.2 Vérification du contenu de l'APK
@@ -293,10 +293,10 @@ sans aucune modification manuelle du projet entre la commande et l'APK.
 
 ```
 package: name='com.digitalholding.colorflow' versionCode='3' versionName='0.2.0'
-         platformBuildVersionName='16' platformBuildVersionCode='36'
-         compileSdkVersion='36' compileSdkVersionCodename='16'
+         platformBuildVersionName='15' platformBuildVersionCode='35'
+         compileSdkVersion='35' compileSdkVersionCodename='15'
 sdkVersion:'23'
-targetSdkVersion:'36'
+targetSdkVersion:'35'
 application-label:'Color Flow'
 launchable-activity: name='com.unity3d.player.UnityPlayerActivity'
 native-code: 'arm64-v8a' 'armeabi-v7a'

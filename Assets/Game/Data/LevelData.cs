@@ -36,6 +36,10 @@ namespace ColorFlow.Game.Data
         [Tooltip("Durée maximale en secondes. 0 = valeur par défaut de l'objectif (60 s score, 30 s course).")]
         [SerializeField, Min(0f)] private float timeLimitSeconds = 0f;
 
+        [Header("Méta-progression")]
+        [Tooltip("Nombre de niveaux gagnés requis pour révéler ce niveau dans le menu. 0 = toujours visible.")]
+        [SerializeField, Min(0)] private int requiredWins = 0;
+
         public string LevelId => levelId;
 
         public string DisplayName => displayName;
@@ -47,6 +51,12 @@ namespace ColorFlow.Game.Data
         public int TargetScore => targetScore;
 
         public float TimeLimitSeconds => timeLimitSeconds;
+
+        /// <summary>Nombre de victoires requises avant d'apparaître dans le menu.</summary>
+        public int RequiredWins => requiredWins;
+
+        /// <summary>Niveau caché (œuf de Pâques) tant que le joueur n'a pas assez gagné.</summary>
+        public bool IsHidden => requiredWins > 0;
 
         public string[] Rows => rows;
 

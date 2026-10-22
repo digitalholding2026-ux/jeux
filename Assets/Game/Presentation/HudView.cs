@@ -221,20 +221,20 @@ namespace ColorFlow.Game.Presentation
             UiFactory.Stretch(_comboLabel.rectTransform, 0f, 0f, 0f, 0f);
 
             // --- Message d'aide ---
-            _hintCard = UiFactory.CreateCard("HintBubble", root, JuicePalette.Paper, 34f);
+            _hintCard = UiFactory.CreateCard("HintBubble", root, JuicePalette.Paper, 30f);
             UiFactory.SetRect(
                 _hintCard,
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0f, -520f),
-                new Vector2(780f, 88f));
+                new Vector2(0.5f, 0f),
+                new Vector2(0.5f, 0f),
+                new Vector2(0.5f, 0f),
+                new Vector2(0f, 476f),
+                new Vector2(820f, 62f));
             _hintGroup = _hintCard.gameObject.AddComponent<CanvasGroup>();
             _hintGroup.alpha = 0f;
             _hintGroup.blocksRaycasts = false;
 
-            _hint = UiFactory.CreateText("HintText", _hintCard, string.Empty, 38, JuicePalette.Ink);
-            UiFactory.Stretch(_hint.rectTransform, 24f, 6f, 24f, 6f);
+            _hint = UiFactory.CreateText("HintText", _hintCard, string.Empty, 30, JuicePalette.Ink);
+            UiFactory.Stretch(_hint.rectTransform, 22f, 4f, 22f, 4f);
 
             // --- Écran de fin ---
             var overlayRoot = UiFactory.CreateRect("Overlay", root);
@@ -324,12 +324,25 @@ namespace ColorFlow.Game.Presentation
             _levelName.text = value;
         }
 
-        /// <summary>Libellé d'objectif + affichage du chrono si le niveau est limité.</summary>
+        /// <summary>Libellé d'objectif. Le chrono reste toujours visible (Sprint 4).</summary>
         public void SetGoal(string label, bool hasTimeLimit)
         {
             _goalLabel.text = label;
             _hasTimeLimit = hasTimeLimit;
-            _timerBubble.gameObject.SetActive(hasTimeLimit);
+            _timerBubble.gameObject.SetActive(true);
+
+            if (hasTimeLimit)
+            {
+                _timerPanel.color = JuicePalette.Sun;
+                _timerLabel.color = JuicePalette.Ink;
+            }
+            else
+            {
+                // Niveau sans limite : chrono ascendant neutre, toujours lisible.
+                _timerPanel.color = JuicePalette.Sky;
+                _timerLabel.color = JuicePalette.Ink;
+                _timerLabel.text = "0:00";
+            }
         }
 
         public void SetTimeRemaining(float seconds)
@@ -342,12 +355,27 @@ namespace ColorFlow.Game.Presentation
             var remaining = Mathf.Max(0f, seconds);
             _timerLabel.text = Mathf.CeilToInt(remaining) + " s";
 
-            var urgent = remaining <= 5f;
+            var urgent = remaining <= 10f;
+            var warning = remaining <= 30f;
             _timerLabel.color = urgent ? JuicePalette.Pink : JuicePalette.Ink;
             if (_timerPanel != null)
             {
-                _timerPanel.color = urgent ? JuicePalette.Pink : JuicePalette.Sun;
+                _timerPanel.color = urgent
+                    ? JuicePalette.Pink
+                    : (warning ? JuicePalette.Accent : JuicePalette.Sun);
             }
+        }
+
+        /// <summary>Chrono ascendant pour les niveaux sans limite de temps.</summary>
+        public void SetElapsed(float seconds)
+        {
+            if (_hasTimeLimit)
+            {
+                return;
+            }
+
+            var total = Mathf.Max(0, Mathf.FloorToInt(seconds));
+            _timerLabel.text = (total / 60) + ":" + (total % 60).ToString("00");
         }
 
         public void SetScore(int score)

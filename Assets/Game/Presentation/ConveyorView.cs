@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ColorFlow.Game.Data;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using ColorFlow.Core;
 
@@ -31,12 +32,17 @@ namespace ColorFlow.Game.Presentation
         private readonly Image[] _accessories;
         private readonly Button[] _buttons;
         private readonly Creature[] _creatures;
+        private readonly CanvasGroup[] _groups;
         private readonly RectTransform[] _stripes;
         private readonly float[] _phases;
         private readonly int _capacity;
 
         private float _time;
         private float _scroll;
+        private RectTransform _ghost;
+        private Image _ghostImage;
+        private Creature _dragged;
+        private int _draggedIndex = -1;
 
         public ConveyorView(RectTransform root, int capacity = ConveyorQueue<Creature>.DefaultCapacity)
         {
@@ -52,6 +58,7 @@ namespace ColorFlow.Game.Presentation
             _accessories = new Image[_capacity];
             _buttons = new Button[_capacity];
             _creatures = new Creature[_capacity];
+            _groups = new CanvasGroup[_capacity];
             _phases = new float[_capacity];
 
             BuildBelt();
@@ -65,9 +72,27 @@ namespace ColorFlow.Game.Presentation
 
         public event Action<Creature> CreatureTapped;
 
+        /// <summary>Début du glisser d'un blob depuis le tapis.</summary>
+        public event Action<Creature> DragStarted;
+
+        /// <summary>Glisser en cours (position écran du doigt).</summary>
+        public event Action<Creature, Vector2> DragMoved;
+
+        /// <summary>Relâchement (position écran du doigt) : l'appelant décide du drop.</summary>
+        public event Action<Creature, Vector2> DragEnded;
+
+        /// <summary>Simple tap sur un blob (rappel « glisse-le »).</summary>
+        public event Action<Creature> SlotTapped;
+
         public Button GetButton(int index)
         {
             return index >= 0 && index < _capacity ? _buttons[index] : null;
+        }
+
+        /// <summary>Accessoire de skin affiché sur un emplacement (tests de persistance).</summary>
+        public Image GetAccessory(int index)
+        {
+            return index >= 0 && index < _capacity ? _accessories[index] : null;
         }
 
         private void BuildBelt()
@@ -148,6 +173,7 @@ namespace ColorFlow.Game.Presentation
 
             var breather = UiFactory.CreateRect("Breather", holder);
             UiFactory.Stretch(breather, 0f, 0f, 0f, 0f);
+            var group = breather.gameObject.AddComponent<CanvasGroup>();
 
             var blob = UiFactory.CreateImage("Blob", breather, Color.white, true);
             blob.sprite = ArtFactory.Blob();
@@ -210,7 +236,13 @@ namespace ColorFlow.Game.Presentation
             _symbols[index] = symbol;
             _accessories[index] = accessory;
             _buttons[index] = button;
+            _groups[index] = group;
             _phases[index] = index * 0.9f;
+
+            // Sprint 4 : le tapis ne « tape » plus, il glisse.
+            var relay = slot.gameObject.AddComponent<ConveyorDragRelay>();
+            relay.View = this;
+            relay.Index = index;
 
             holder.gameObject.SetActive(false);
             button.interactable = false;
@@ -398,8 +430,136 @@ namespace ColorFlow.Game.Presentation
             var creature = _creatures[index];
             if (creature != null)
             {
-                CreatureTapped?.Invoke(creature);
+                SlotTapped?.Invoke(creature);
             }
+        }
+
+        // --- Sprint 4 : glisser-déposer ---------------------------------------
+
+        /// <summary>Appelé par le relais de drag quand le joueur attrape un blob.</summary>
+        public void BeginDrag(int index, PointerEventData eventData)
+        {
+            if (index < 0 || index >= _capacity)
+            {
+                return;
+            }
+
+            var creature = _creatures[index];
+            if (creature == null)
+            {
+                return;
+            }
+
+            _dragged = creature;
+            _draggedIndex = index;
+            if (_groups[index] != null)
+            {
+                _groups[index].alpha = 0.25f;
+            }
+
+            CreateGhost(creature);
+            MoveGhost(eventData.position);
+            DragStarted?.Invoke(creature);
+        }
+
+        public void DragTo(PointerEventData eventData)
+        {
+            if (_dragged == null)
+            {
+                return;
+            }
+
+            MoveGhost(eventData.position);
+            DragMoved?.Invoke(_dragged, eventData.position);
+        }
+
+        public void EndDrag(PointerEventData eventData)
+        {
+            if (_dragged == null)
+            {
+                return;
+            }
+
+            var creature = _dragged;
+            if (_draggedIndex >= 0 && _draggedIndex < _capacity && _groups[_draggedIndex] != null)
+            {
+                _groups[_draggedIndex].alpha = 1f;
+            }
+
+            DestroyGhost();
+            _dragged = null;
+            _draggedIndex = -1;
+            DragEnded?.Invoke(creature, eventData.position);
+        }
+
+        private void CreateGhost(Creature creature)
+        {
+            DestroyGhost();
+
+            var canvas = _root.GetComponentInParent<Canvas>();
+            if (canvas == null)
+            {
+                return;
+            }
+
+            var layer = (RectTransform)canvas.rootCanvas.transform;
+            _ghostImage = UiFactory.CreateImage("DragGhost", layer, Color.white);
+            _ghostImage.sprite = creature.Kind == CreatureKind.Rainbow
+                ? ArtFactory.RainbowBlob()
+                : ArtFactory.Blob();
+            _ghostImage.color = creature.Kind == CreatureKind.Rainbow
+                ? Color.white
+                : UiFactory.ToColor(creature.DisplayColor);
+            _ghostImage.preserveAspect = true;
+            _ghostImage.raycastTarget = false;
+
+            _ghost = _ghostImage.rectTransform;
+            _ghost.anchorMin = new Vector2(0.5f, 0.5f);
+            _ghost.anchorMax = new Vector2(0.5f, 0.5f);
+            _ghost.pivot = new Vector2(0.5f, 0.5f);
+            _ghost.sizeDelta = new Vector2(190f, 190f);
+            _ghost.SetAsLastSibling();
+            _ghost.localScale = Vector3.one * 1.05f;
+        }
+
+        private void MoveGhost(Vector2 screenPosition)
+        {
+            if (_ghost == null)
+            {
+                return;
+            }
+
+            if (_ghost.parent is RectTransform layer &&
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(layer, screenPosition, null, out var local))
+            {
+                _ghost.anchoredPosition = local;
+            }
+        }
+
+        private void DestroyGhost()
+        {
+            if (_ghost != null)
+            {
+                UnityEngine.Object.Destroy(_ghost.gameObject);
+                _ghost = null;
+                _ghostImage = null;
+            }
+        }
+
+        /// <summary>Le blob lâché n'est pas accepté : rebond élastique sur le tapis.</summary>
+        public void PlayDropReturn(Creature creature)
+        {
+            var index = Array.IndexOf(_creatures, creature);
+            if (index < 0 || index >= _capacity)
+            {
+                return;
+            }
+
+            var holder = _holders[index];
+            holder.anchoredPosition = new Vector2(0f, 42f);
+            holder.localScale = Vector3.one * 0.62f;
+            TweenRunner.Run(Tween.Scale(holder, Vector3.one * 0.62f, Vector3.one, 0.5f, Ease.OutBounce));
+            TweenRunner.Run(Tween.Move(holder, new Vector2(0f, 42f), Vector2.zero, 0.5f, Ease.OutBounce));
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using ColorFlow.Game.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,6 +32,10 @@ namespace ColorFlow.Game.Presentation
         private readonly Text _coins;
         private readonly Row[] _rows;
         private readonly Action _onChanged;
+        private readonly Text _feedback;
+        private readonly CanvasGroup _feedbackGroup;
+        private Coroutine _feedbackRoutine;
+        private Coroutine _shakeRoutine;
 
         public ShopPanel(RectTransform root, Action onChanged)
         {
@@ -51,7 +56,7 @@ namespace ColorFlow.Game.Presentation
             dimButton.transition = Selectable.Transition.None;
             dimButton.onClick.AddListener(Close);
 
-            _card = UiFactory.CreateCard("ShopCard", _overlay, JuicePalette.Paper, 52f);
+            _card = UiFactory.CreateCard("ShopCard", UiFactory.CreateSafeArea("ShopSafe", _overlay), JuicePalette.Paper, 52f);
             UiFactory.SetRect(
                 _card,
                 new Vector2(0.5f, 0.5f),
@@ -114,6 +119,19 @@ namespace ColorFlow.Game.Presentation
                 _rows[i] = BuildRow(all[i], firstY - i * (rowHeight + rowGap), rowHeight);
             }
 
+            // Message de retour (achat réussi / fonds insuffisants).
+            _feedback = UiFactory.CreateText("Feedback", _card, string.Empty, 30, JuicePalette.PinkDeep);
+            UiFactory.SetRect(
+                _feedback.rectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -464f),
+                new Vector2(840f, 48f));
+            _feedbackGroup = _feedback.gameObject.AddComponent<CanvasGroup>();
+            _feedbackGroup.alpha = 0f;
+            _feedbackGroup.blocksRaycasts = false;
+
             var close = UiFactory.CreateButton3D(
                 "Close",
                 _card,
@@ -152,12 +170,34 @@ namespace ColorFlow.Game.Presentation
         public void Open()
         {
             Refresh();
+            FitToSafeArea();
             _overlay.gameObject.SetActive(true);
             _overlay.SetAsLastSibling();
             _dimGroup.alpha = 0f;
+            _feedbackGroup.alpha = 0f;
             TweenRunner.Run(Tween.Fade(_dimGroup, 0f, 1f, 0.2f));
             TweenRunner.Run(Tween.PopIn(_card, 0.3f));
             AudioManager.PlayClick();
+        }
+
+        /// <summary>Réduit la carte si l'aire sûre est plus petite que 960×1340.</summary>
+        private void FitToSafeArea()
+        {
+            var safe = _card.parent as RectTransform;
+            if (safe == null)
+            {
+                return;
+            }
+
+            var size = safe.rect.size;
+            if (size.x <= 1f || size.y <= 1f)
+            {
+                _card.localScale = Vector3.one;
+                return;
+            }
+
+            var scale = Mathf.Min(1f, (size.x - 24f) / 960f, (size.y - 24f) / 1340f);
+            _card.localScale = Vector3.one * Mathf.Clamp(scale, 0.55f, 1f);
         }
 
         public void Close()
@@ -273,20 +313,109 @@ namespace ColorFlow.Game.Presentation
                 {
                     MetaProgress.SelectedSkin = skin;
                     AudioManager.PlayClick();
+                    ShowFeedback("Skin équipé !", JuicePalette.MintDeep);
+                    TweenRunner.Run(Tween.Pop(FindRow(skin)?.Preview.transform, 0.16f, 0.3f));
                 }
+
+                Refresh();
+                _onChanged?.Invoke();
+                return;
             }
-            else if (MetaProgress.TryBuy(skin))
+
+            if (MetaProgress.TryBuy(skin))
             {
                 MetaProgress.SelectedSkin = skin;
                 AudioManager.PlayPop();
-            }
-            else
-            {
-                AudioManager.PlayError();
+                Haptics.Impact();
+                ShowFeedback("Skin débloqué et équipé !", JuicePalette.MintDeep);
+                Celebrate(skin);
+                Refresh();
+                _onChanged?.Invoke();
+                return;
             }
 
+            // Fonds insuffisants : message rouge bref + secousse du bouton.
+            AudioManager.PlayError();
+            Haptics.Tap();
+            ShowFeedback("Pas assez de pièces !", JuicePalette.PinkDeep);
+            ShakeRow(skin);
             Refresh();
-            _onChanged?.Invoke();
+        }
+
+        private Row FindRow(SkinId skin)
+        {
+            for (var i = 0; i < _rows.Length; i++)
+            {
+                if (_rows[i].Skin == skin)
+                {
+                    return _rows[i];
+                }
+            }
+
+            return null;
+        }
+
+        private void ShakeRow(SkinId skin)
+        {
+            var row = FindRow(skin);
+            if (row?.Action == null)
+            {
+                return;
+            }
+
+            var rect = row.Action.GetComponent<RectTransform>();
+            if (_shakeRoutine != null)
+            {
+                TweenRunner.Stop(_shakeRoutine);
+                rect.anchoredPosition = new Vector2(286f, 0f);
+            }
+
+            _shakeRoutine = TweenRunner.Run(Tween.Shake(rect, new Vector2(286f, 0f), 18f, 0.36f));
+        }
+
+        /// <summary>Pop du blob, du portefeuille et gerbe d'étincelles à l'achat.</summary>
+        private void Celebrate(SkinId skin)
+        {
+            var row = FindRow(skin);
+            if (row == null)
+            {
+                return;
+            }
+
+            TweenRunner.Run(Tween.Pop(row.Preview.transform, 0.28f, 0.42f));
+            TweenRunner.Run(Tween.Pop(_coins.rectTransform, 0.14f, 0.3f));
+
+            var local = _overlay.InverseTransformPoint(row.Preview.transform.position);
+            UiParticles.Sparkle(_overlay, local, JuicePalette.Sun, 12);
+            UiParticles.Sparkle(_overlay, local, JuicePalette.Mint, 8);
+        }
+
+        private void ShowFeedback(string message, Color color)
+        {
+            _feedback.text = message;
+            _feedback.color = color;
+
+            if (_feedbackRoutine != null)
+            {
+                TweenRunner.Stop(_feedbackRoutine);
+            }
+
+            _feedbackGroup.alpha = 1f;
+            _feedback.rectTransform.localScale = Vector3.one * 0.7f;
+            TweenRunner.Run(Tween.Scale(
+                _feedback.rectTransform,
+                Vector3.one * 0.7f,
+                Vector3.one,
+                0.22f,
+                Ease.OutBack));
+            _feedbackRoutine = TweenRunner.Run(FadeFeedback(1.25f));
+        }
+
+        private IEnumerator FadeFeedback(float delay)
+        {
+            yield return Tween.Delay(delay);
+            yield return Tween.Fade(_feedbackGroup, 1f, 0f, 0.35f);
+            _feedbackRoutine = null;
         }
 
         private void Refresh()
@@ -318,7 +447,10 @@ namespace ColorFlow.Game.Presentation
                 {
                     row.ActionLabel.text = "ACHETER";
                     SetFace(row, affordable ? JuicePalette.Violet : JuicePalette.InkSoft);
-                    row.Action.interactable = affordable;
+
+                    // Toujours cliquable : un joueur sans assez de pièces doit
+                    // pouvoir déclencher le feedback « Pas assez de pièces ! ».
+                    row.Action.interactable = true;
                 }
                 else if (selected == row.Skin)
                 {

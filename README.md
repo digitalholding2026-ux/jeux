@@ -1,23 +1,35 @@
-# Color Flow — Sprint 2
+# Color Flow — Hotfix 2.5 + Sprint 4
 
 Puzzle hybride mobile (portrait, public 8–14 ans). Le dépôt contient le jeu
-complet **Sprint 2** : boucle de jeu, blobs spéciaux, score et combos, objectifs
-variables, économie de pièces, boutique de skins et sauvegarde locale.
+complet **Sprint 4** : glisser-déposer des blobs, résolution match-3, blobs
+spéciaux, score et combos, objectifs variables, chrono permanent, économie de
+pièces, boutique de skins et sauvegarde locale. Le hotfix **2.5** ajoute l'UI
+adaptée aux encoches, le feedback de boutique et la persistance du skin.
 
-Aucun asset externe : tous les visuels (blobs, symboles, pièces, accessoires),
-les animations, l'UI et les sons sont **générés par le code** à l'exécution.
+Aucun asset externe : tous les visuels (blobs, symboles, pièces, accessoires,
+icône de boutique), les animations, l'UI et les sons sont **générés par le code**
+à l'exécution.
+
+📄 Rapport détaillé : [RAPPORT_SPRINT4.md](RAPPORT_SPRINT4.md)
 
 ## Contenu
 
-- Grille N×M décrite par des données, peinte par des créatures colorées.
+- Grille N×M décrite par des données, remplie par des **alignements de 3 blobs**.
 - Tapis roulant FIFO de 5 créatures, spawn équitable (aucune couleur morte).
-- **3 blobs spéciaux** tirés à 10 % : bombe 3×3, arc-en-ciel, ligne.
-- **Score** (10 pts/pixel) et **combos ×2 / ×3 / ×4** sur 1,5 s.
+- **Glisser-déposer** : le blob suit le doigt, la case cible est surlignée en vert
+  ou en rose, un drop invalide rebondit sur le tapis.
+- **Match-3** : 3 blobs alignés peignent le motif, 4 créent un **Blob Ligne**,
+  5 créent un **Blob Bombe**.
+- **3 blobs spéciaux** : bombe 3×3, ligne, arc-en-ciel (forme en +).
+- **Score** et **combos ×2 / ×3 / ×4** sur 1,5 s.
 - **3 objectifs** : remplir le motif, atteindre un score en 60 s, remplir en 30 s.
-- **6 niveaux** de test, dont 3 dédiés aux nouveaux objectifs.
-- **Pièces d'or** gagnées selon le score, **boutique** et **3 skins** achetables.
-- Sauvegarde `PlayerPrefs` (pièces, skins possédés, skin équipé).
-- Écran de fin indiquant objectif atteint ou manqué, score et pièces gagnées.
+- **Chrono toujours visible** : compte à rebours ou chrono ascendant.
+- **6 niveaux** visibles + **1 niveau secret** (dinosaure) débloqué après
+  3 victoires uniques.
+- **Pièces d'or** gagnées selon le score, **boutique** et **4 skins**.
+- **Aire sûre** respectée sur tous les écrans (encoche, barre système, 20:9).
+- Sauvegarde `PlayerPrefs` (pièces, skins possédés, skin équipé, victoires).
+- Écran de fin avec révélation du motif case par case, score et pièces gagnées.
 
 ## Prérequis
 
@@ -43,28 +55,40 @@ Les trois scènes sont déjà dans **File > Build Profiles** : `Boot`, `MainMenu
 
 ## Jouer
 
-- Le menu propose **6 niveaux** en grille, une **bourse de pièces** et un bouton
-  **BOUTIQUE**.
+- Le menu propose une grille de niveaux, une **bourse de pièces** et un bouton
+  **BOUTIQUE** ancré dans l'aire sûre.
 - Une créature apparaît régulièrement sur le tapis (5 emplacements).
-- **Taper une créature** peint le prochain pixel de sa couleur
-  (haut-gauche → bas-droite).
-- Une créature dont la couleur n'est plus nécessaire est refusée : elle reste
-  sur le tapis et un message l'indique.
-- **Bombe** : peint le carré 3×3 autour du prochain pixel de sa couleur.
-- **Arc-en-ciel** : peint le prochain pixel cible, quelle que soit sa couleur.
-- **Ligne** : peint toute la rangée ou colonne la plus rentable.
-- **Combo** : enchaîner deux blobs de même couleur affichée en moins de 1,5 s
-  multiplie les points (×2, ×3, ×4 maximum).
-- Tapis plein à la 6ᵉ créature → **Perdu** (ou score non atteint / temps écoulé).
-- Objectif rempli → **Gagné**. Les pièces sont créditées automatiquement.
+- **Glisser un blob du tapis vers une case libre du motif.** La case cible est
+  surlignée en vert si le drop est valide, en rose sinon ; un drop refusé renvoie
+  le blob sur le tapis avec un rebond.
+- **3 blobs de même couleur alignés** (ligne ou colonne) explosent, peignent
+  leurs cases et disparaissent.
+- **4 alignés** créent un Blob Ligne ; **5 alignés** créent un Blob Bombe. Les
+  spéciaux retournent sur le tapis et se lancent sur n'importe quelle case du
+  motif non peinte.
+- **Bombe** : peint le carré 3×3 autour de la case visée.
+- **Arc-en-ciel** : peint la case visée et ses quatre voisines.
+- **Ligne** : peint la rangée ou la colonne la plus rentable.
+- **Combo** : enchaîner deux actions qui peignent en moins de 1,5 s multiplie
+  les points (×2, ×3, ×4 maximum).
+- Tapis plein à la 6ᵉ créature → **Perdu**. Grille pleine sans spécial et sans
+  alignement possible → **Perdu** (ou score non atteint / temps écoulé).
+- Motif entièrement peint → **Gagné** : révélation case par case, puis pièces
+  créditées automatiquement.
 
 ### Objectifs
 
 | Objectif | Victoire | Défaite |
 |---|---|---|
-| `FillAll` | motif entièrement peint | tapis plein |
+| `FillAll` | motif entièrement peint | tapis plein, grille bloquée |
 | `ScoreTarget` | score cible avant la limite (60 s par défaut) | chrono, tapis plein, motif fini avant le score |
 | `TimeAttack` | motif fini avant la limite (30 s par défaut) | chrono, tapis plein |
+
+### Niveau secret
+
+« Le Dinosaure » (motif 11×11) n'apparaît dans le menu qu'après **3 victoires sur
+des niveaux différents**. Les replays ne comptent pas : le déblocage est une vraie
+récompense de progression.
 
 ### Boutique et skins
 
@@ -86,8 +110,8 @@ laisser le symbole de pouvoir lisible.
 
 **Window > General > Test Runner**
 
-- Onglet **EditMode** → *Run All* (86 tests)
-- Onglet **PlayMode** → *Run All* (3 smoke tests)
+- Onglet **EditMode** → *Run All* (109 tests)
+- Onglet **PlayMode** → *Run All* (9 tests)
 
 ### En ligne de commande
 
@@ -133,21 +157,22 @@ Assets/
     ColorFlow.Core.asmdef    # noEngineReferences: true
     Model/                   # RgbaColor, Creature, CreatureKind, GridModel,
                              # ConveyorQueue, LevelDefinition, LevelBuilder,
-                             # GameState, GoalType
+                             # GameState, GoalType, DropResult
     Rules/                   # PaintResolver, PaintResult, PaintAllowance,
-                             # ScoreRules, EconomyRules, GoalRules
+                             # Match3Resolver, ScoreRules, EconomyRules, GoalRules
     Flow/                    # GameController, CreatureSpawner, IRandomSource
   Game/                      # Couche Unity
     ColorFlow.Game.asmdef    # référence ColorFlow.Core
     Data/                    # LevelData, LevelCatalog, MetaProgress, SkinCatalog
     Presentation/            # GameSceneController, GridView, ConveyorView,
-                             # HudView, ShopPanel, UiFactory, ArtFactory,
-                             # MainMenuController, BootController
-  Resources/Levels/          # 6 niveaux (.asset)
+                             # ConveyorDragRelay, SafeArea, HudView, ShopPanel,
+                             # UiFactory, ArtFactory, MainMenuController,
+                             # BootController
+  Resources/Levels/          # 7 niveaux (.asset, dont le niveau secret)
   Scenes/                    # Boot, MainMenu, Game
   Tests/
-    EditMode/                # 86 tests NUnit (domaine uniquement)
-    PlayMode/                # scènes Game / MainMenu / restart
+    EditMode/                # 109 tests NUnit (domaine + auto-play match-3)
+    PlayMode/                # 9 tests scènes / drag / boutique / secret
 Tools/CoreTests/             # compilation/tests hors Unity (CI)
 ```
 
@@ -159,9 +184,9 @@ Tools/CoreTests/             # compilation/tests hors Unity (CI)
   spéciale) et pourquoi c'est invalide ; `PaintAllowance` garantit qu'un effet
   de zone ne rend jamais morte une créature déjà posée ; `ScoreRules`,
   `EconomyRules` et `GoalRules` isolent score, monnaie et objectifs.
-- **Contrôleur** : `GameController` orchestre spawn, tap, score, combo, chrono
-  et transitions `Playing / Won / Lost`. Il est **pur C#** : le MonoBehaviour
-  lui transmet seulement `Time.deltaTime` et les taps.
+- **Contrôleur** : `GameController` orchestre spawn, drop match-3, score, combo,
+  chrono et transitions `Playing / Won / Lost`. Il est **pur C#** : le MonoBehaviour
+  lui transmet seulement `Time.deltaTime` et les positions de drop.
 - **Vue** : `GameSceneController` + `GridView` / `ConveyorView` / `HudView` /
   `ShopPanel` construisent l'UI et écoutent les événements du contrôleur.
 
@@ -216,11 +241,13 @@ Ajouter un niveau = créer un `LevelData` dans `Assets/Resources/Levels/`
 (clic droit → **Create > Color Flow > Niveau**). Il apparaît automatiquement
 dans le menu (grille de 3 colonnes), sans modification de code.
 
-## Limites assumées du Sprint 2
+## Limites assumées de la livraison
 
 - Pas de test sur appareil physique (vérification statique + tests Unity).
-- Pas de nouvelle musique ni de voix (sons procéduraux réutilisés).
-- Progression de niveaux non sauvegardée (seules pièces et skins le sont).
-- Pas d'analytics, pas d'IAP, pas de publicité.
-- Interface en français uniquement.
-- Équilibrage (400 pts/60 s, prix des skins) à confirmer par des parties réelles.
+- APK debug en version 0.2.0 / code 3, non signé pour la release.
+- Pas de gravité ni de cascades : le plateau est statique après chaque coup.
+- Progression des 6 niveaux standard non verrouillée ; seules les victoires
+  (compteur de déblocage et œuf de Pâques) sont sauvegardées.
+- Pas d'analytics, pas d'IAP, pas de publicité, pas de réglages audio/haptique.
+- Interface en français uniquement, sans mode daltonien dédié.
+- Équilibrage (score/temps, prix des skins) à confirmer par des parties réelles.

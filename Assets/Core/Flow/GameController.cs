@@ -29,6 +29,7 @@ namespace ColorFlow.Core
             Conveyor = new ConveyorQueue<Creature>(Math.Max(1, conveyorCapacity));
             Spawner = spawner ?? new CreatureSpawner(level.SpawnInterval);
             Resolver = resolver ?? new PaintResolver();
+            Match3 = new Match3Resolver();
 
             Conveyor.ItemAdded += OnCreatureAdded;
             Conveyor.ItemRemoved += OnCreatureRemoved;
@@ -48,6 +49,12 @@ namespace ColorFlow.Core
 
         public event Action<Creature, PaintResult> PaintResolved;
 
+        /// <summary>Un glisser-déposer a été appliqué (placement et/ou alignement).</summary>
+        public event Action<Creature, DropResult> DropResolved;
+
+        /// <summary>Un glisser-déposer a été refusé : le blob doit retourner au tapis.</summary>
+        public event Action<Creature, DropFailureReason> DropRejected;
+
         /// <summary>Score courant (change après chaque tap réussi).</summary>
         public event Action<int> ScoreChanged;
 
@@ -65,6 +72,9 @@ namespace ColorFlow.Core
         public CreatureSpawner Spawner { get; }
 
         public PaintResolver Resolver { get; }
+
+        /// <summary>Résolveur match-3 du Sprint 4 (placement, alignements, spéciales).</summary>
+        public Match3Resolver Match3 { get; }
 
         public GameState State
         {
@@ -173,6 +183,78 @@ namespace ColorFlow.Core
 
             EvaluateGoalAfterAction();
             return result;
+        }
+
+        /// <summary>
+        /// Glisse une créature du tapis vers une case de la grille.
+        /// Un blob normal se pose sur une case libre du motif ; un blob spécial
+        /// déclenche son effet de zone sur la case visée. Un refus ne change
+        /// jamais l'état du jeu : le blob retourne sur le tapis (UI).
+        /// </summary>
+        public DropResult Drop(Creature creature, int x, int y)
+        {
+            if (creature == null)
+            {
+                return RejectDrop(null, DropFailureReason.NoCreature);
+            }
+
+            if (_state != GameState.Playing)
+            {
+                return RejectDrop(creature, DropFailureReason.GameNotPlaying);
+            }
+
+            if (!Conveyor.Contains(creature))
+            {
+                return RejectDrop(creature, DropFailureReason.UnknownCreature);
+            }
+
+            var result = creature.IsSpecial
+                ? Match3.ResolveSpecialDrop(creature, Grid, x, y)
+                : Match3.ResolveNormalDrop(creature, Grid, x, y);
+
+            if (!result.IsSuccess)
+            {
+                return RejectDrop(creature, result.Failure);
+            }
+
+            Conveyor.TryRemove(creature);
+
+            if (result.PaintedCount > 0)
+            {
+                var multiplier = RegisterCombo(creature);
+                var points = ScoreRules.PointsFor(result.PaintedCount, multiplier);
+                if (points > 0)
+                {
+                    Score += points;
+                    ScoreChanged?.Invoke(Score);
+                }
+            }
+
+            if (result.HasSpecial && _state == GameState.Playing)
+            {
+                Spawner.CreateSpecial(creature.Color, result.SpecialKind);
+            }
+
+            DropResolved?.Invoke(creature, result);
+            EvaluateGoalAfterAction();
+            EvaluateDeadlock();
+            return result;
+        }
+
+        /// <summary>Vrai si la créature peut être lâchée sur cette case (surbrillance UI).</summary>
+        public bool IsValidDropTarget(Creature creature, int x, int y)
+        {
+            if (Grid == null || creature == null)
+            {
+                return false;
+            }
+
+            if (creature.IsSpecial)
+            {
+                return Grid.HasTargetAt(x, y) && !Grid.IsPainted(x, y);
+            }
+
+            return Grid.IsPlaceable(x, y);
         }
 
         /// <summary>Génère une créature immédiatement (tests, debug).</summary>
@@ -291,6 +373,46 @@ namespace ColorFlow.Core
             var result = PaintResult.Fail(reason);
             PaintResolved?.Invoke(creature, result);
             return result;
+        }
+
+        private DropResult RejectDrop(Creature creature, DropFailureReason reason)
+        {
+            DropRejected?.Invoke(creature, reason);
+            return DropResult.Fail(reason);
+        }
+
+        /// <summary>
+        /// Plus aucune case libre, aucun alignement possible et aucun blob
+        /// spécial sur le tapis : la partie est perdue (pas de coup possible).
+        /// </summary>
+        private void EvaluateDeadlock()
+        {
+            if (_state != GameState.Playing || Grid == null)
+            {
+                return;
+            }
+
+            if (!Match3Resolver.IsBlocked(Grid, HasSpecialOnBelt()))
+            {
+                return;
+            }
+
+            Spawner.Enabled = false;
+            State = GameState.Lost;
+        }
+
+        private bool HasSpecialOnBelt()
+        {
+            var items = Conveyor.Items;
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (items[i] != null && items[i].IsSpecial)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnCreatureSpawned(Creature creature)

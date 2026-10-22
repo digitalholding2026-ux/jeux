@@ -11,6 +11,7 @@ namespace ColorFlow.Core
     {
         private readonly RgbaColor[] _targets;
         private readonly bool[] _painted;
+        private readonly RgbaColor[] _occupied;
 
         public GridModel(LevelDefinition level)
             : this(level.Width, level.Height, CopyTargets(level))
@@ -33,6 +34,7 @@ namespace ColorFlow.Core
             Height = height;
             _targets = (RgbaColor[])targets.Clone();
             _painted = new bool[targets.Length];
+            _occupied = new RgbaColor[targets.Length];
 
             var count = 0;
             for (var i = 0; i < _targets.Length; i++)
@@ -79,6 +81,96 @@ namespace ColorFlow.Core
         public bool IsPainted(int x, int y)
         {
             return IsInside(x, y) && _painted[y * Width + x];
+        }
+
+        // --- Sprint 4 : blobs posés sur la grille (match-3) -------------------
+
+        /// <summary>Une case porte-t-elle un blob posé par le joueur ?</summary>
+        public bool IsOccupied(int x, int y)
+        {
+            return IsInside(x, y) && !_occupied[y * Width + x].IsTransparent;
+        }
+
+        /// <summary>Couleur du blob posé, ou transparent si la case est libre.</summary>
+        public RgbaColor OccupiedColorAt(int x, int y)
+        {
+            return IsInside(x, y) ? _occupied[y * Width + x] : RgbaColor.Transparent;
+        }
+
+        /// <summary>Case du motif encore libre : cible non peinte et sans blob.</summary>
+        public bool IsPlaceable(int x, int y)
+        {
+            return HasTargetAt(x, y) && !IsPainted(x, y) && !IsOccupied(x, y);
+        }
+
+        /// <summary>Vrai s'il reste au moins une case du motif libre.</summary>
+        public bool HasPlaceableCell
+        {
+            get
+            {
+                for (var i = 0; i < _targets.Length; i++)
+                {
+                    if (!_targets[i].IsTransparent && !_painted[i] && _occupied[i].IsTransparent)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>Nombre total de blobs actuellement posés sur la grille.</summary>
+        public int OccupiedCount
+        {
+            get
+            {
+                var count = 0;
+                for (var i = 0; i < _occupied.Length; i++)
+                {
+                    if (!_occupied[i].IsTransparent)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
+
+        /// <summary>Pose un blob sur une case libre du motif.</summary>
+        public bool TryPlace(int x, int y, RgbaColor color)
+        {
+            if (color.IsTransparent || !IsPlaceable(x, y))
+            {
+                return false;
+            }
+
+            _occupied[y * Width + x] = color;
+            return true;
+        }
+
+        /// <summary>Retire le blob d'une case et retourne sa couleur (transparent si vide).</summary>
+        public RgbaColor RemoveBlob(int x, int y)
+        {
+            if (!IsInside(x, y))
+            {
+                return RgbaColor.Transparent;
+            }
+
+            var index = y * Width + x;
+            var color = _occupied[index];
+            _occupied[index] = RgbaColor.Transparent;
+            return color;
+        }
+
+        /// <summary>Retire tous les blobs (redémarrage, effets de zone).</summary>
+        public void ClearBlobs()
+        {
+            for (var i = 0; i < _occupied.Length; i++)
+            {
+                _occupied[i] = RgbaColor.Transparent;
+            }
         }
 
         /// <summary>
@@ -176,6 +268,7 @@ namespace ColorFlow.Core
         private bool PaintIndex(int index, int x, int y)
         {
             _painted[index] = true;
+            _occupied[index] = RgbaColor.Transparent;
             PaintedCount++;
             PixelPainted?.Invoke(x, y, _targets[index]);
             return true;

@@ -11,9 +11,43 @@ namespace ColorFlow.Game.Data
         private const string CoinsKey = "colorflow.coins";
         private const string SelectedSkinKey = "colorflow.skin.selected";
         private const string OwnedPrefix = "colorflow.skin.owned.";
+        private const string WinsKey = "colorflow.wins.total";
+        private const string WonPrefix = "colorflow.level.won.";
 
         /// <summary>Solde courant en pièces d'or.</summary>
         public static int Coins => PlayerPrefs.GetInt(CoinsKey, 0);
+
+        /// <summary>Nombre de niveaux différents déjà gagnés (débloque l'œuf de Pâques).</summary>
+        public static int TotalWins => PlayerPrefs.GetInt(WinsKey, 0);
+
+        /// <summary>Le niveau a-t-il déjà été gagné au moins une fois ?</summary>
+        public static bool HasWon(string levelId)
+        {
+            return !string.IsNullOrEmpty(levelId) && PlayerPrefs.GetInt(WonPrefix + levelId, 0) == 1;
+        }
+
+        /// <summary>
+        /// Enregistre une victoire. Seule la première victoire sur un niveau
+        /// incrémente le compteur global (pas de farming de déblocage).
+        /// </summary>
+        public static bool RecordWin(string levelId)
+        {
+            if (string.IsNullOrEmpty(levelId) || HasWon(levelId))
+            {
+                return false;
+            }
+
+            PlayerPrefs.SetInt(WonPrefix + levelId, 1);
+            PlayerPrefs.SetInt(WinsKey, TotalWins + 1);
+            PlayerPrefs.Save();
+            return true;
+        }
+
+        /// <summary>Le niveau est-il visible dans le menu ?</summary>
+        public static bool IsUnlocked(LevelData level)
+        {
+            return level != null && TotalWins >= level.RequiredWins;
+        }
 
         public static void AddCoins(int amount)
         {
@@ -77,9 +111,16 @@ namespace ColorFlow.Game.Data
         {
             PlayerPrefs.DeleteKey(CoinsKey);
             PlayerPrefs.DeleteKey(SelectedSkinKey);
+            PlayerPrefs.DeleteKey(WinsKey);
             for (var i = 0; i < SkinCatalog.All.Length; i++)
             {
                 PlayerPrefs.DeleteKey(OwnedPrefix + (int)SkinCatalog.All[i].Id);
+            }
+
+            var levels = Resources.LoadAll<LevelData>("Levels");
+            for (var i = 0; i < levels.Length; i++)
+            {
+                PlayerPrefs.DeleteKey(WonPrefix + levels[i].LevelId);
             }
 
             PlayerPrefs.Save();

@@ -82,6 +82,18 @@ namespace ColorFlow.Game.Presentation
             return rect;
         }
 
+        /// <summary>
+        /// RectTransform plein écran qui se recale automatiquement sur l'aire
+        /// sûre (encoche, barre système). Toute l'UI interactive doit vivre
+        /// à l'intérieur ; le décor peut rester en plein écran.
+        /// </summary>
+        public static RectTransform CreateSafeArea(string name, Transform parent)
+        {
+            var rect = CreateRect(name, parent);
+            rect.gameObject.AddComponent<SafeArea>();
+            return rect;
+        }
+
         public static Image CreateImage(string name, Transform parent, Color color, bool raycastTarget = false)
         {
             var rect = CreateRect(name, parent);
