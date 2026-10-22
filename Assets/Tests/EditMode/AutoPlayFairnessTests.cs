@@ -150,7 +150,10 @@ namespace ColorFlow.Tests.EditMode
 
             game.PaintResolved += (creature, result) =>
             {
-                if (creature != null && !result.IsSuccess)
+                // Une créature spéciale peut être bloquée par le budget d'équité
+                // (ses pixels restants sont réservés à une créature du tapis) :
+                // ce n'est pas un tap refusé « injuste ».
+                if (creature != null && !result.IsSuccess && !creature.IsSpecial)
                 {
                     rejectedTaps++;
                 }

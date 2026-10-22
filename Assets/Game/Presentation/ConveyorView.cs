@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ColorFlow.Game.Data;
 using UnityEngine;
 using UnityEngine.UI;
 using ColorFlow.Core;
@@ -25,6 +26,9 @@ namespace ColorFlow.Game.Presentation
         private readonly RectTransform[] _breathers;
         private readonly Image[] _blobs;
         private readonly Image[] _shadows;
+        private readonly Image[] _symbolBadges;
+        private readonly Image[] _symbols;
+        private readonly Image[] _accessories;
         private readonly Button[] _buttons;
         private readonly Creature[] _creatures;
         private readonly RectTransform[] _stripes;
@@ -43,6 +47,9 @@ namespace ColorFlow.Game.Presentation
             _breathers = new RectTransform[_capacity];
             _blobs = new Image[_capacity];
             _shadows = new Image[_capacity];
+            _symbolBadges = new Image[_capacity];
+            _symbols = new Image[_capacity];
+            _accessories = new Image[_capacity];
             _buttons = new Button[_capacity];
             _creatures = new Creature[_capacity];
             _phases = new float[_capacity];
@@ -159,11 +166,49 @@ namespace ColorFlow.Game.Presentation
             var captured = index;
             button.onClick.AddListener(() => OnSlotClicked(captured));
 
+            // Badge du pouvoir (créatures spéciales) : pastille + symbole.
+            var badge = UiFactory.CreateDot("PowerBadge", breather, new Color(1f, 1f, 1f, 0.88f));
+            UiFactory.SetRect(
+                badge.rectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(46f, -42f),
+                new Vector2(80f, 80f));
+
+            var symbol = UiFactory.CreateImage("PowerSymbol", badge.transform, Color.white);
+            symbol.preserveAspect = true;
+            UiFactory.SetRect(
+                symbol.rectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(58f, 58f));
+
+            // Accessoire de skin (lunettes, chapeau, couronne).
+            var accessory = UiFactory.CreateImage("SkinAccessory", breather, Color.white);
+            accessory.preserveAspect = true;
+            UiFactory.SetRect(
+                accessory.rectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 46f),
+                new Vector2(120f, 110f));
+
+            badge.enabled = false;
+            symbol.enabled = false;
+            accessory.enabled = false;
+
             _slotRoots[index] = slot;
             _holders[index] = holder;
             _breathers[index] = breather;
             _blobs[index] = blob;
             _shadows[index] = shadow;
+            _symbolBadges[index] = badge;
+            _symbols[index] = symbol;
+            _accessories[index] = accessory;
             _buttons[index] = button;
             _phases[index] = index * 0.9f;
 
@@ -191,8 +236,8 @@ namespace ColorFlow.Game.Presentation
                 var creature = creatures[i];
                 var previous = _creatures[i];
                 _creatures[i] = creature;
-                _blobs[i].color = UiFactory.ToColor(creature.Color);
                 _holders[i].gameObject.SetActive(true);
+                ApplyCreatureLook(i, creature);
 
                 if (ReferenceEquals(previous, creature))
                 {
@@ -207,6 +252,56 @@ namespace ColorFlow.Game.Presentation
                 {
                     PlayShift(i);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Applique la couleur affichée, le sprite arc-en-ciel, le badge de pouvoir
+        /// et l'accessoire du skin équipé.
+        /// </summary>
+        private void ApplyCreatureLook(int index, Creature creature)
+        {
+            var isRainbow = creature.Kind == CreatureKind.Rainbow;
+            _blobs[index].sprite = isRainbow ? ArtFactory.RainbowBlob() : ArtFactory.Blob();
+            _blobs[index].color = isRainbow ? Color.white : UiFactory.ToColor(creature.DisplayColor);
+
+            var special = creature.IsSpecial;
+            _symbolBadges[index].enabled = special;
+            _symbols[index].enabled = special;
+
+            if (special)
+            {
+                _symbols[index].sprite = ArtFactory.SpecialSymbol(creature.Kind);
+                _symbols[index].color = creature.Kind == CreatureKind.Rainbow
+                    ? JuicePalette.Sun
+                    : (creature.Kind == CreatureKind.Line ? JuicePalette.Ink : Color.white);
+            }
+
+            var skin = MetaProgress.SelectedSkin;
+            var accessory = special ? null : ArtFactory.SkinAccessory(skin);
+            _accessories[index].enabled = accessory != null;
+
+            if (accessory == null)
+            {
+                return;
+            }
+
+            _accessories[index].sprite = accessory;
+            var rect = _accessories[index].rectTransform;
+            switch (skin)
+            {
+                case SkinId.Glasses:
+                    rect.anchoredPosition = new Vector2(0f, 4f);
+                    rect.sizeDelta = new Vector2(116f, 116f);
+                    break;
+                case SkinId.Hat:
+                    rect.anchoredPosition = new Vector2(0f, 56f);
+                    rect.sizeDelta = new Vector2(130f, 112f);
+                    break;
+                case SkinId.Crown:
+                    rect.anchoredPosition = new Vector2(0f, 60f);
+                    rect.sizeDelta = new Vector2(118f, 104f);
+                    break;
             }
         }
 

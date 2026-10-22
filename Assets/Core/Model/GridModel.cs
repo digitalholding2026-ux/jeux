@@ -129,9 +129,55 @@ namespace ColorFlow.Core
                 return false;
             }
 
+            return PaintIndex(index, x, y);
+        }
+
+        /// <summary>
+        /// Peint la case cible sans vérifier la couleur fournie : utilisé par les
+        /// créatures spéciales (bombe, ligne, arc-en-ciel) qui peignent plusieurs
+        /// pixels d'un coup. La couleur peinte reste celle du motif.
+        /// </summary>
+        public bool TryPaintTarget(int x, int y)
+        {
+            if (!IsInside(x, y))
+            {
+                return false;
+            }
+
+            var index = y * Width + x;
+            if (_painted[index] || _targets[index].IsTransparent)
+            {
+                return false;
+            }
+
+            return PaintIndex(index, x, y);
+        }
+
+        /// <summary>Premier pixel cible non peint, toutes couleurs confondues.</summary>
+        public bool TryFindNextAnyPixel(out int x, out int y)
+        {
+            for (var i = 0; i < _targets.Length; i++)
+            {
+                if (_painted[i] || _targets[i].IsTransparent)
+                {
+                    continue;
+                }
+
+                x = i % Width;
+                y = i / Width;
+                return true;
+            }
+
+            x = -1;
+            y = -1;
+            return false;
+        }
+
+        private bool PaintIndex(int index, int x, int y)
+        {
             _painted[index] = true;
             PaintedCount++;
-            PixelPainted?.Invoke(x, y, color);
+            PixelPainted?.Invoke(x, y, _targets[index]);
             return true;
         }
 

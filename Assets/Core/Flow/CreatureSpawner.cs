@@ -44,6 +44,13 @@ namespace ColorFlow.Core
 
         public bool Enabled { get; set; } = true;
 
+        /// <summary>
+        /// Probabilité (en pourcentage) qu'une créature générée soit spéciale.
+        /// 10 = « 1 chance sur 10 » par défaut (Sprint 2). Mettre 0 désactive
+        /// les créatures spéciales (tests déterministes).
+        /// </summary>
+        public int SpecialChancePercent { get; set; } = 10;
+
         public float TimeToNextSpawn => _interval - _timer;
 
         /// <summary>Avance le temps et génère les créatures dues.</summary>
@@ -88,9 +95,32 @@ namespace ColorFlow.Core
                 return null;
             }
 
-            var creature = new Creature(_nextId++, color);
+            var creature = new Creature(_nextId++, color, RollKind(random));
             Spawned?.Invoke(creature);
             return creature;
+        }
+
+        /// <summary>
+        /// Tire le type de la créature : normale, ou l'une des trois spéciales.
+        /// La couleur reste tirée par la règle d'équité : une spéciale ne peut
+        /// donc jamais être « morte ».
+        /// </summary>
+        private CreatureKind RollKind(IRandomSource random)
+        {
+            if (SpecialChancePercent <= 0 || random.Range(0, 100) >= SpecialChancePercent)
+            {
+                return CreatureKind.Normal;
+            }
+
+            switch (random.Range(0, 3))
+            {
+                case 0:
+                    return CreatureKind.Bomb;
+                case 1:
+                    return CreatureKind.Rainbow;
+                default:
+                    return CreatureKind.Line;
+            }
         }
 
         public void Reset()

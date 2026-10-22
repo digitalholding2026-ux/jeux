@@ -14,9 +14,12 @@ namespace ColorFlow.Core
             string displayName,
             string[] rows,
             string[] paletteHex,
-            float spawnInterval)
+            float spawnInterval,
+            GoalType goalType = GoalType.FillAll,
+            int targetScore = 0,
+            float timeLimitSeconds = 0f)
         {
-            if (!TryFromRows(id, displayName, rows, paletteHex, spawnInterval, out var level, out var error))
+            if (!TryFromRows(id, displayName, rows, paletteHex, spawnInterval, goalType, targetScore, timeLimitSeconds, out var level, out var error))
             {
                 throw new ArgumentException(error);
             }
@@ -30,6 +33,21 @@ namespace ColorFlow.Core
             string[] rows,
             string[] paletteHex,
             float spawnInterval,
+            out LevelDefinition level,
+            out string error)
+        {
+            return TryFromRows(id, displayName, rows, paletteHex, spawnInterval, GoalType.FillAll, 0, 0f, out level, out error);
+        }
+
+        public static bool TryFromRows(
+            string id,
+            string displayName,
+            string[] rows,
+            string[] paletteHex,
+            float spawnInterval,
+            GoalType goalType,
+            int targetScore,
+            float timeLimitSeconds,
             out LevelDefinition level,
             out string error)
         {
@@ -110,7 +128,7 @@ namespace ColorFlow.Core
                 return false;
             }
 
-            level = new LevelDefinition(id, displayName, width, height, cells, palette, spawnInterval);
+            level = new LevelDefinition(id, displayName, width, height, cells, palette, spawnInterval, goalType, targetScore, timeLimitSeconds);
             error = null;
             return true;
         }

@@ -20,7 +20,10 @@ namespace ColorFlow.Core
             int height,
             RgbaColor[] cells,
             RgbaColor[] palette,
-            float spawnInterval)
+            float spawnInterval,
+            GoalType goalType = GoalType.FillAll,
+            int targetScore = 0,
+            float timeLimitSeconds = 0f)
         {
             if (width <= 0 || height <= 0)
             {
@@ -45,6 +48,23 @@ namespace ColorFlow.Core
             _palette = palette != null ? (RgbaColor[])palette.Clone() : new RgbaColor[0];
             SpawnInterval = spawnInterval;
 
+            GoalType = goalType;
+            if (goalType == GoalType.ScoreTarget && targetScore <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(targetScore), "Un objectif de score doit être strictement positif.");
+            }
+
+            TargetScore = goalType == GoalType.ScoreTarget ? targetScore : 0;
+
+            // Valeurs par défaut du cahier des charges : 60 s pour le score,
+            // 30 s pour la course au remplissage.
+            if (timeLimitSeconds <= 0f && GoalRules.HasTimeLimit(goalType))
+            {
+                timeLimitSeconds = GoalRules.DefaultTimeLimit(goalType);
+            }
+
+            TimeLimitSeconds = GoalRules.HasTimeLimit(goalType) ? timeLimitSeconds : 0f;
+
             var targets = 0;
             for (var i = 0; i < _cells.Length; i++)
             {
@@ -66,6 +86,14 @@ namespace ColorFlow.Core
         public int Height { get; }
 
         public float SpawnInterval { get; }
+
+        public GoalType GoalType { get; }
+
+        /// <summary>Score à atteindre (objectif <see cref="GoalType.ScoreTarget"/>).</summary>
+        public int TargetScore { get; }
+
+        /// <summary>Durée maximale en secondes (0 = pas de limite).</summary>
+        public float TimeLimitSeconds { get; }
 
         public int TargetPixelCount { get; }
 
@@ -90,5 +118,8 @@ namespace ColorFlow.Core
         {
             return IsInside(x, y) && !_cells[y * Width + x].IsTransparent;
         }
+
+        /// <summary>Libellé de l'objectif, prêt à afficher.</summary>
+        public string GoalDescription => GoalRules.Describe(GoalType, TargetScore, TimeLimitSeconds);
     }
 }

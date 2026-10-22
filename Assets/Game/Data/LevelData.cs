@@ -26,20 +26,52 @@ namespace ColorFlow.Game.Data
         [Tooltip("Secondes entre deux créatures.")]
         [SerializeField, Min(0.2f)] private float spawnInterval = 1.6f;
 
+        [Header("Objectif")]
+        [Tooltip("FillAll : remplir le motif. ScoreTarget : atteindre un score en un temps limité. TimeAttack : remplir avant la limite.")]
+        [SerializeField] private GoalType goalType = GoalType.FillAll;
+
+        [Tooltip("Score à atteindre (objectif ScoreTarget uniquement).")]
+        [SerializeField, Min(0)] private int targetScore = 300;
+
+        [Tooltip("Durée maximale en secondes. 0 = valeur par défaut de l'objectif (60 s score, 30 s course).")]
+        [SerializeField, Min(0f)] private float timeLimitSeconds = 0f;
+
         public string LevelId => levelId;
 
         public string DisplayName => displayName;
 
         public float SpawnInterval => spawnInterval;
 
+        public GoalType GoalType => goalType;
+
+        public int TargetScore => targetScore;
+
+        public float TimeLimitSeconds => timeLimitSeconds;
+
         public string[] Rows => rows;
 
         public string[] Palette => palette;
 
+        /// <summary>Libellé d'objectif prêt à afficher (menu et HUD).</summary>
+        public string GoalDescription => GoalRules.Describe(
+            goalType,
+            targetScore,
+            timeLimitSeconds > 0f ? timeLimitSeconds : GoalRules.DefaultTimeLimit(goalType));
+
         /// <summary>Convertit les données Unity en modèle du domaine (Core).</summary>
         public bool TryBuild(out LevelDefinition definition, out string error)
         {
-            return LevelBuilder.TryFromRows(levelId, displayName, rows, palette, spawnInterval, out definition, out error);
+            return LevelBuilder.TryFromRows(
+                levelId,
+                displayName,
+                rows,
+                palette,
+                spawnInterval,
+                goalType,
+                targetScore,
+                timeLimitSeconds,
+                out definition,
+                out error);
         }
 
         public LevelDefinition ToDefinition()

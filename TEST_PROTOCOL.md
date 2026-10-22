@@ -1,8 +1,8 @@
-# TEST_PROTOCOL.md — Validation device de Color Flow (Sprint 0.5)
+# TEST_PROTOCOL.md — Validation device de Color Flow (Sprint 2)
 
 Protocole à exécuter par le lead sur un **appareil Android réel**. Ce document est
-la seule source de vérité pour clôturer Sprint 0.5 : le sprint n'est **pas clos**
-tant que les scénarios 1 à 4 ne sont pas validés.
+la seule source de vérité pour clôturer le Sprint 2 : le sprint n'est **pas clos**
+tant que les scénarios 1 à 5 et les scénarios S2-1 à S2-5 ne sont pas validés.
 
 - **APK testé** : `Builds/Android/colorflow-debug.apk` (build de développement)
 - **Package** : `com.digitalholding.colorflow`
@@ -251,17 +251,101 @@ Chercher en priorité : `FATAL EXCEPTION`, `ANR in com.digitalholding.colorflow`
 
 ---
 
-## 9. Critères de clôture Sprint 0.5
+## 9. Critères de clôture Sprint 2
 
 Tous obligatoires :
 
-- [ ] `dotnet test Tools/CoreTests/CoreTests.csproj` → **100 % de réussite**.
+- [ ] `dotnet test Tools/CoreTests/CoreTests.csproj` → **100 % de réussite** (86/86).
 - [ ] APK produit (`Builds/Android/colorflow-debug.apk`) + taille + hash notés.
-- [ ] Scénarios **1, 2 et 3** : statut **OK**.
-- [ ] Scénario **4** : aucun crash, aucune fuite mémoire visible.
+- [ ] Scénarios **1, 2, 3** et **S2-1, S2-2, S2-3, S2-4** : statut **OK**.
+- [ ] Scénario **4** et **S2-5** : aucun crash, aucune fuite mémoire visible.
 - [ ] Scénario **5** : exécuté ou explicitement marqué « non testé » avec raison.
-- [ ] Aucun bug bloquant ouvert ; sinon Sprint 0.5.1 (hotfix borné) avant clôture.
+- [ ] Aucun bug bloquant ouvert ; sinon hotfix borné avant clôture.
 
 **Procédure en cas de KO** : joindre le rapport de bug ci-dessus. L'agent exécute
-un Sprint **0.5.1** limité aux bugs constatés, reconstruit l'APK, met à jour ce
-protocole si nécessaire, puis le lead re-teste.
+un hotfix limité aux bugs constatés, reconstruit l'APK, met à jour ce protocole si
+nécessaire, puis le lead re-teste.
+
+---
+
+## 10. Scénarios Sprint 2 (à valider en plus des précédents)
+
+> Ces scénarios couvrent les ajouts du Sprint 2 : blobs spéciaux, score/combos,
+> objectifs chronométrés et méta-jeu. Ils ne remplacent pas les scénarios 1 à 5.
+
+### S2-1 — Blobs spéciaux et équité
+
+1. Lancer une partie sur `Level_GoalFill` (« Le Grand Cœur ») et jouer ~2 minutes.
+2. Observer l'apparition des trois symboles : bombe (pastille grise), étoile
+   (arc-en-ciel), barres (ligne bleue).
+3. Taper chaque type de spéciale au moins une fois, en notant le nombre de pixels
+   peints.
+
+**Attendu**
+
+- [ ] La bombe peint jusqu'à 9 pixels autour du prochain pixel de sa couleur.
+- [ ] L'arc-en-ciel peint un pixel, même d'une autre couleur que le blob.
+- [ ] La ligne peint une rangée ou une colonne entière.
+- [ ] Aucune créature déjà posée ne devient inutilisable après un pouvoir.
+- [ ] Aucun crash ni pic de saccade sur les effets.
+
+### S2-2 — Score et combos
+
+1. Sur `Level_GoalScore` (« Ruée au Score »), enchaîner deux blobs de même couleur
+   en moins de 1,5 s.
+2. Recommencer pour atteindre ×3 puis ×4, puis laisser passer 2 s.
+3. Vérifier le score affiché à côté de l'étoile.
+
+**Attendu**
+
+- [ ] Le popup « COMBO ×2 ! » (puis ×3, ×4) apparaît avec un rebond.
+- [ ] Le multiplicateur ne dépasse jamais ×4.
+- [ ] Après 1,5 s sans tap ou un changement de couleur, le combo repart à ×1.
+- [ ] Le score augmente de 10 points par pixel × multiplicateur.
+
+### S2-3 — Objectifs et écran de fin
+
+1. `Level_GoalScore` : atteindre 400 points avant 60 s.
+2. Relancer et laisser le chrono expirer.
+3. `Level_GoalTime` : remplir les 17 pixels avant 30 s, puis relancer sans jouer.
+
+**Attendu**
+
+- [ ] Chrono visible et lisible ; il devient rose et pulse sous 5 s.
+- [ ] Victoire affiche « Objectif atteint : 400 pts » (ou le temps réalisé).
+- [ ] Défaite affiche la raison exacte (« temps écoulé » ou « x / 400 pts »).
+- [ ] Les boutons REJOUER et MENU fonctionnent.
+
+### S2-4 — Boutique, pièces et sauvegarde
+
+1. Relever la bourse dans le menu, jouer une partie, revenir au menu.
+2. Ouvrir **BOUTIQUE**, acheter un skin abordable, l'équiper.
+3. Tuer l'application (paramètres Android → Forcer l'arrêt), la relancer.
+
+**Attendu**
+
+- [ ] La bourse augmente après la partie (score / 40 + prime).
+- [ ] Le bouton ACHETER est désactivé si le solde est insuffisant.
+- [ ] L'achat débite le solde et équipe immédiatement le skin.
+- [ ] L'accessoire est visible sur les blobs normaux, pas sur les spéciales.
+- [ ] Après redémarrage : pièces, skins possédés et skin équipé conservés.
+
+### S2-5 — Robustesse Sprint 2
+
+1. Enchaîner 10 parties mélangeant les 6 niveaux et les 3 objectifs.
+2. Acheter/équiper au moins deux skins entre les parties.
+3. Relever la mémoire avant/après (même méthode que le scénario 4).
+
+**Attendu**
+
+- [ ] 0 crash, 0 ANR, aucune fuite mémoire visible.
+- [ ] Aucun niveau ne reste bloqué en `Playing`.
+- [ ] Les objectifs chronométrés se terminent toujours (victoire ou défaite).
+
+| Scénario | Attendu | Observé | Statut |
+|---|---|---|---|
+| S2-1 Spéciales | 3 pouvoirs, équité intacte | | OK / KO |
+| S2-2 Combos | ×2→×4, reset après 1,5 s | | OK / KO |
+| S2-3 Objectifs | victoire/défaite explicites | | OK / KO |
+| S2-4 Boutique | achat + persistance | | OK / KO |
+| S2-5 Robustesse | 0 crash, mémoire stable | | OK / KO |

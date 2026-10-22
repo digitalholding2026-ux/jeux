@@ -32,7 +32,17 @@ namespace ColorFlow.Tests.EditMode
 
         private static GameController NewGame(LevelDefinition level)
         {
-            return new GameController(level, new RandomSource(123));
+            // Les tests du Sprint 0 vérifient la boucle « un tap = un pixel » :
+            // les créatures spéciales sont désactivées ici, elles ont leurs
+            // propres tests dans SprintTwoTests.
+            var spawner = new CreatureSpawner(level.SpawnInterval) { SpecialChancePercent = 0 };
+            return new GameController(level, new RandomSource(123), ConveyorQueue<Creature>.DefaultCapacity, spawner);
+        }
+
+        private static GameController NoSpecialGame(LevelDefinition level, IRandomSource random)
+        {
+            var spawner = new CreatureSpawner(level.SpawnInterval) { SpecialChancePercent = 0 };
+            return new GameController(level, random, ConveyorQueue<Creature>.DefaultCapacity, spawner);
         }
 
         /// <summary>Aléa figé : permet de garantir la couleur générée.</summary>
@@ -210,7 +220,7 @@ namespace ColorFlow.Tests.EditMode
                 new[] { "12" },
                 new[] { "#FF0000", "#00FF00" },
                 1f);
-            var game = new GameController(level, new FixedRandom(0));
+            var game = NoSpecialGame(level, new FixedRandom(0));
 
             var red = game.SpawnNow();
             Assert.IsTrue(red.Color.Equals(RgbaColor.FromHex("#FF0000")));

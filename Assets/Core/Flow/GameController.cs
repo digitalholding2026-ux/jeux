@@ -4,13 +4,17 @@ namespace ColorFlow.Core
 {
     /// <summary>
     /// Orchestrateur de la boucle de jeu : spawn automatique, tap, résolution,
-    /// transitions d'état. Pur C# : le MonoBehaviour ne fait que lui passer le temps
-    /// et les entrées.
+    /// score, combos, objectifs et transitions d'état. Pur C# : le MonoBehaviour
+    /// ne fait que lui passer le temps et les entrées.
     /// </summary>
     public sealed class GameController
     {
         private readonly IRandomSource _random;
         private GameState _state;
+        private float _comboTimer;
+        private RgbaColor _lastComboColor;
+        private int _comboChain;
+        private int _multiplier = 1;
 
         public GameController(
             LevelDefinition level,
@@ -43,6 +47,12 @@ namespace ColorFlow.Core
         public event Action<Creature, int> CreatureRemoved;
 
         public event Action<Creature, PaintResult> PaintResolved;
+
+        /// <summary>Score courant (change après chaque tap réussi).</summary>
+        public event Action<int> ScoreChanged;
+
+        /// <summary>Multiplicateur de combo courant (1 = pas de combo).</summary>
+        public event Action<int> ComboChanged;
 
         public event Action LevelRestarted;
 
@@ -77,14 +87,45 @@ namespace ColorFlow.Core
 
         public int TargetPixels => Grid.TargetCount;
 
-        /// <summary>Avance la simulation (spawn automatique).</summary>
+        public int Score { get; private set; }
+
+        /// <summary>Multiplicateur appliqué au prochain tap (1 à 4).</summary>
+        public int CurrentMultiplier => _multiplier;
+
+        /// <summary>Temps écoulé depuis le début de la partie.</summary>
+        public float ElapsedTime { get; private set; }
+
+        /// <summary>Temps restant (0 si le niveau n'a pas de limite).</summary>
+        public float TimeRemaining { get; private set; }
+
+        public bool HasTimeLimit => GoalRules.HasTimeLimit(Level.GoalType);
+
+        /// <summary>Vrai si l'objectif du niveau est rempli à cet instant.</summary>
+        public bool IsGoalReached => GoalRules.IsReached(Level.GoalType, Grid.IsComplete, Score, Level.TargetScore);
+
+        /// <summary>Avance la simulation (spawn automatique, chrono, combo).</summary>
         public void Tick(float deltaTime)
         {
-            if (_state != GameState.Playing || Grid == null)
+            if (_state != GameState.Playing || Grid == null || deltaTime <= 0f)
             {
                 return;
             }
 
+            ElapsedTime += deltaTime;
+
+            if (HasTimeLimit)
+            {
+                TimeRemaining -= deltaTime;
+                if (TimeRemaining <= 0f)
+                {
+                    TimeRemaining = 0f;
+                    Spawner.Enabled = false;
+                    State = GameState.Lost;
+                    return;
+                }
+            }
+
+            UpdateCombo(deltaTime);
             Spawner.Tick(deltaTime, Grid, Conveyor.Items, _random);
         }
 
@@ -111,21 +152,26 @@ namespace ColorFlow.Core
                 return Reject(creature, PaintFailureReason.UnknownCreature);
             }
 
-            var result = Resolver.Resolve(creature, Grid);
+            var result = Resolver.Resolve(creature, Grid, Conveyor.Items);
             if (!result.IsSuccess)
             {
+                ResetCombo();
                 return Reject(creature, result.Failure);
             }
 
             Conveyor.TryRemove(creature);
-            PaintResolved?.Invoke(creature, result);
 
-            if (result.LevelCompleted)
+            var multiplier = RegisterCombo(creature);
+            var points = ScoreRules.PointsFor(result.PaintedCount, multiplier);
+            if (points > 0)
             {
-                Spawner.Enabled = false;
-                State = GameState.Won;
+                Score += points;
+                ScoreChanged?.Invoke(Score);
             }
 
+            PaintResolved?.Invoke(creature, result);
+
+            EvaluateGoalAfterAction();
             return result;
         }
 
@@ -152,8 +198,18 @@ namespace ColorFlow.Core
             Spawner.Reset();
             Spawner.Enabled = true;
 
+            Score = 0;
+            _comboChain = 0;
+            _comboTimer = 0f;
+            _lastComboColor = RgbaColor.Transparent;
+            _multiplier = 1;
+            ElapsedTime = 0f;
+            TimeRemaining = HasTimeLimit ? Level.TimeLimitSeconds : 0f;
+
             _state = GameState.Playing;
             LevelRestarted?.Invoke();
+            ScoreChanged?.Invoke(Score);
+            ComboChanged?.Invoke(1);
             StateChanged?.Invoke(_state);
         }
 
@@ -162,6 +218,72 @@ namespace ColorFlow.Core
         {
             Level = level ?? throw new ArgumentNullException(nameof(level));
             Restart();
+        }
+
+        private void EvaluateGoalAfterAction()
+        {
+            if (IsGoalReached)
+            {
+                Spawner.Enabled = false;
+                State = GameState.Won;
+                return;
+            }
+
+            // Objectif de score : si le motif est rempli avant le score cible,
+            // plus rien ne peut rapporter de points → objectif manqué.
+            if (Level.GoalType == GoalType.ScoreTarget && Grid.IsComplete)
+            {
+                Spawner.Enabled = false;
+                State = GameState.Lost;
+            }
+        }
+
+        /// <summary>Met à jour le combo et retourne le multiplicateur de l'action.</summary>
+        private int RegisterCombo(Creature creature)
+        {
+            var sameColor = _comboTimer > 0f && _lastComboColor.Equals(creature.ComboColor);
+            _comboChain = sameColor ? _comboChain + 1 : 1;
+            _comboTimer = ScoreRules.ComboWindowSeconds;
+            _lastComboColor = creature.ComboColor;
+
+            var multiplier = ScoreRules.MultiplierFor(_comboChain);
+            if (multiplier != _multiplier)
+            {
+                _multiplier = multiplier;
+                ComboChanged?.Invoke(_multiplier);
+            }
+
+            return multiplier;
+        }
+
+        private void UpdateCombo(float deltaTime)
+        {
+            if (_comboTimer <= 0f)
+            {
+                return;
+            }
+
+            _comboTimer -= deltaTime;
+            if (_comboTimer > 0f)
+            {
+                return;
+            }
+
+            _comboTimer = 0f;
+            ResetCombo();
+        }
+
+        private void ResetCombo()
+        {
+            _comboChain = 0;
+            _comboTimer = 0f;
+            if (_multiplier == 1)
+            {
+                return;
+            }
+
+            _multiplier = 1;
+            ComboChanged?.Invoke(1);
         }
 
         private PaintResult Reject(Creature creature, PaintFailureReason reason)

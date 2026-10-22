@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44444444444444444444444444444444, type: 3}
+  m_Name: Level_GoalScore
+  m_EditorClassIdentifier: 
+  levelId: objectif-score
+  displayName: Ruée au Score
+  rows:
+  - '123123'
+  - '231231'
+  - '312312'
+  - '123123'
+  - '231231'
+  - '312312'
+  palette:
+  - '#FF6B6B'
+  - '#4FB8FF'
+  - '#FFD93D'
+  spawnInterval: 0.95
+  goalType: 1
+  targetScore: 400
+  timeLimitSeconds: 60

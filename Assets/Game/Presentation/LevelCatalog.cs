@@ -4,8 +4,8 @@ using UnityEngine;
 namespace ColorFlow.Game.Presentation
 {
     /// <summary>
-    /// Charge les niveaux placeholders depuis Resources/Levels.
-    /// Sprint 0 : évite tout câblage manuel de références dans les scènes.
+    /// Charge les niveaux depuis Resources/Levels, triés par nom pour un ordre
+    /// stable dans le menu. Aucun câblage manuel de références dans les scènes.
     /// </summary>
     public static class LevelCatalog
     {

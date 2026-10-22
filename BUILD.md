@@ -3,12 +3,11 @@
 Ce document décrit comment produire **`Builds/Android/colorflow-debug.apk`** à partir du
 projet Unity, en GUI ou en ligne de commande (batchmode).
 
-> **Statut de vérification (Sprint 0.5.1)** : le pipeline ci-dessous a été **exécuté
-> avec succès** sur la machine de l'agent. APK produit, mesuré et vérifié (`aapt dump
-> badging`). Voir §9 « Résultat du feasibility check » pour les valeurs exactes
-> (version d'Unity, taille, durée, SHA-256) et §7 pour les erreurs réellement
-> rencontrées et corrigées. La validation **device** reste à faire par le lead via
-> `TEST_PROTOCOL.md`.
+> **Statut de vérification (Sprint 2)** : le pipeline ci-dessous a été **exécuté
+> avec succès** sur la machine de l'agent pour l'APK **v0.2.0**. APK produit, mesuré
+> et vérifié (`aapt dump badging`). Voir §9 « Résultat du build » pour les valeurs
+> exactes (version d'Unity, taille, durée, SHA-256). La validation **device** reste
+> à faire par le lead via `TEST_PROTOCOL.md`.
 
 ---
 
@@ -239,6 +238,7 @@ Le log complet d'un build Unity fait plusieurs milliers de lignes : chercher d'a
 | Build très long (> 15 min) | Premier build IL2CPP + import | Normal ; surveiller `Builds/build.log`, ne pas interrompre |
 | `error CS0104: 'Debug' is an ambiguous reference` | Un script Editor importe `System.Diagnostics` **et** `UnityEngine` : `Debug` devient ambigu | Retirer `using System.Diagnostics;` et qualifier `System.Diagnostics.Stopwatch` (corrigé dans `Assets/Editor/BuildScript.cs`) |
 | `UnityException: JDK not found` | Aucun JDK livré avec le module Android, et le chemin personnalisé n'est pas pris en compte si « JDK Installed with Unity » est décoché | Installer OpenJDK 17 dans `<Editor>/Data/PlaybackEngines/AndroidPlayer/OpenJDK` (détection automatique), ou recocher l'option dans External Tools |
+| `UnityException: JDK not found` alors que `JAVA_HOME` est défini | Unity 6000.0.23f1 n'accepte pas un **JDK 21** (ou plus récent) comme JDK Android | Pointer `JAVA_HOME` sur un **JDK 17** ; `build-android.ps1` détecte la version et bascule automatiquement sur `%LOCALAPPDATA%\Portable\jdk17` si besoin |
 | `UnityException: Android NDK not found` | **Unity 6000.0.23f1 exige le NDK r23b (23.1.7779620)** : un NDK r26b/r28 est rejeté par la validation. Le chemin NDK n'est pas résolu par les seules préférences | Installer r23b puis exporter `ANDROID_NDK_HOME` (et `ANDROID_NDK_ROOT`) vers `<sdk>\ndk\23.1.7779620` avant de lancer Unity |
 | `build-android.ps1` affiche `ECHEC : Unity a retourne le code` (vide) en ~0 s | `Unity.exe` est une application GUI : le call operator PowerShell ne l'attend pas, `$LASTEXITCODE` est vide | `Start-Process -Wait -PassThru` puis `$process.ExitCode` (corrigé dans `build-android.ps1`) |
 
@@ -249,22 +249,25 @@ Le log complet d'un build Unity fait plusieurs milliers de lignes : chercher d'a
 
 ## 8. Limites / non vérifié
 
-- Le build a été exécuté **une seule fois** avec succès, sur la machine Windows de
-  l'agent (Windows 10 64 bits, ~4 Go de RAM, sans GPU). La reproductibilité sur une
-  autre machine n'est pas prouvée.
+- Le build a été exécuté plusieurs fois sur la machine Windows de l'agent (Windows
+  10 64 bits, ~4 Go de RAM, sans GPU) : premier build complet puis builds
+  incrémentaux pour le Sprint 2. La reproductibilité sur une autre machine n'est
+  pas prouvée.
 - `build-android.sh` (bash) n'a **pas** été exécuté : aucune machine Linux/WSL
   disponible. Seul `build-android.ps1` a été exécuté de bout en bout.
-- La **configuration de l'outillage Android** (JDK, SDK, NDK) n'est pas automatisée
-  par les scripts : elle doit être faite une fois, manuellement (§9.3). Le script se
-  contente de vérifier que Unity existe et de lancer le build.
-- Le build a duré **1034,6 s** (~17 min) : c'est un premier build (import complet +
-  IL2CPP). Les builds suivants devraient être plus courts, mais ce n'est pas mesuré.
+- La **configuration de l'outillage Android** (JDK, SDK, NDK) n'est pas entièrement
+  automatisée : `build-android.ps1` résout le JDK 17 et le NDK r23b s'ils sont aux
+  emplacements portables connus, mais une installation standard doit être configurée
+  une fois (§9.3).
+- Le premier build complet a duré **1 044 s** (~17 min) ; les builds incrémentaux
+  du Sprint 2 ont pris **137 s**. Ces valeurs dépendent de la machine et du cache
+  `Library/`.
 - L'APK n'a été ni installé ni lancé sur un appareil : voir `TEST_PROTOCOL.md`,
   à exécuter par le lead.
 
 ---
 
-## 9. Résultat du feasibility check
+## 9. Résultat du build
 
 ### 9.1 Verdict
 
@@ -276,11 +279,12 @@ sans aucune modification manuelle du projet entre la commande et l'APK.
 | Commande | `powershell -NoProfile -ExecutionPolicy Bypass -File build-android.ps1` |
 | Unity | 6000.0.23f1 (1c4764c07fb4), revision 1853284 |
 | Sortie | `Builds/Android/colorflow-debug.apk` |
-| Taille | 38 963 631 octets (37,16 Mo) |
-| Durée totale | 1034,6 s (~17 min 15 s) |
+| Version | `versionName=0.2.0`, `versionCode=3` |
+| Taille | 39 427 851 octets (37,60 Mo) |
+| Durée totale | 137 s (build incrémental) ; 1 044 s pour le premier build complet |
 | Code de sortie Unity | 0 |
 | Erreurs / avertissements | 0 / 0 |
-| SHA-256 | `262340C325B21528E23CD95308B41C6932EAF5EDD068CA25D2744421D8198A72` |
+| SHA-256 | `C684FAA63D7C8E8508636DE61EFA0EE3BF5F9F1FABABF42765AFB6C13876854D` |
 | Log complet | `Builds/build.log` (marqueur final `[ColorFlow][Build] SUCCES`) |
 
 ### 9.2 Vérification du contenu de l'APK
@@ -288,12 +292,14 @@ sans aucune modification manuelle du projet entre la commande et l'APK.
 `aapt dump badging Builds/Android/colorflow-debug.apk` :
 
 ```
-package: name='com.digitalholding.colorflow' versionCode='1' versionName='0.1.0'
+package: name='com.digitalholding.colorflow' versionCode='3' versionName='0.2.0'
+         platformBuildVersionName='16' platformBuildVersionCode='36'
          compileSdkVersion='36' compileSdkVersionCodename='16'
-install-location:'preferExternal'
 sdkVersion:'23'
 targetSdkVersion:'36'
 application-label:'Color Flow'
+launchable-activity: name='com.unity3d.player.UnityPlayerActivity'
+native-code: 'arm64-v8a' 'armeabi-v7a'
 ```
 
 Conforme au cahier des charges : package `com.digitalholding.colorflow`,
@@ -309,11 +315,11 @@ devinables depuis le projet :
 |---|---|---|
 | Unity Editor | 6000.0.23f1 + module **Android Build Support** (SDK/NDK tools + IL2CPP) | Version du projet (`ProjectSettings/ProjectVersion.txt`) |
 | Licence | Unity Personal activée (Hub, compte `digitalholding2026`) | Sans licence, `-batchmode` refuse de builder |
-| JDK | **OpenJDK 17.0.9** installé dans `<Editor>/Data/PlaybackEngines/AndroidPlayer/OpenJDK` | Unity n'accepte un JDK personnalisé que si l'option « JDK Installed with Unity » est correctement configurée ; le chemin embarqué est le plus fiable |
-| SDK Android | `C:\Users\Docker\tools\android-sdk` (build-tools 36.0.0, platform 36) | Détecté via `ANDROID_HOME` / `ANDROID_SDK_ROOT` |
+| JDK | **OpenJDK 17** (`C:\Users\Docker\AppData\Local\Portable\jdk17`, Temurin 17.0.20.1) | Unity 6000.0.23f1 refuse le JDK 21 présent dans `JAVA_HOME` ; le JDK 17 est obligatoire. Le module Android de cette machine ne fournit pas d'OpenJDK embarqué |
+| SDK Android | `C:\Users\Docker\AppData\Local\Portable\android-sdk` (build-tools 36.0.0, platform 36) | Détecté via `ANDROID_HOME` / `ANDROID_SDK_ROOT` |
 | NDK | **r23b = 23.1.7779620** dans `<sdk>\ndk\23.1.7779620` | **Unity 6000.0.23f1 rejette r26b et r28** ; r23b est la seule version validée par cette révision |
 | Variables d'environnement | `ANDROID_HOME`, `ANDROID_SDK_ROOT`, **`ANDROID_NDK_HOME`**, `ANDROID_NDK_ROOT` | Sans `ANDROID_NDK_HOME`, Unity échoue sur `Android NDK not found` même avec le NDK installé et le chemin saisi dans External Tools |
-| `JAVA_HOME` | chemin du JDK 17 | Utilisé par Gradle |
+| `JAVA_HOME` | chemin du **JDK 17** | Utilisé par Gradle. `build-android.ps1` lit `JAVA_VERSION` et bascule automatiquement sur le JDK 17 portable si `JAVA_HOME` pointe sur une autre version |
 
 > **Piège vérifié** : les préférences « External Tools » d'Unity sont stockées en
 > **valeurs binaires avec des noms hachés** dans le registre

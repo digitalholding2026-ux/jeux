@@ -26,6 +26,7 @@ namespace ColorFlow.Game.Presentation
 
         private Vector2 _lastTapPosition;
         private bool _hasLastTap;
+        private bool _coinsAwarded;
 
         public GameController Game => _game;
 
@@ -143,6 +144,11 @@ namespace ColorFlow.Game.Presentation
             _game.Tick(Time.deltaTime);
             _hudView.Tick(Time.deltaTime);
             _conveyorView.Tick(Time.deltaTime);
+
+            if (_game.HasTimeLimit)
+            {
+                _hudView.SetTimeRemaining(_game.TimeRemaining);
+            }
         }
 
         /// <summary>Relance le niveau courant (bouton « Rejouer »).</summary>
@@ -209,14 +215,46 @@ namespace ColorFlow.Game.Presentation
                 _game.StateChanged += OnStateChanged;
                 _game.LevelRestarted += OnLevelRestarted;
                 _game.PaintResolved += OnPaintResolved;
+                _game.ScoreChanged += OnScoreChanged;
+                _game.ComboChanged += OnComboChanged;
 
-                _hudView.SetLevelName(definition.DisplayName);
+                ConfigureHud(definition);
                 RebuildViews();
                 return;
             }
 
             _game.LoadLevel(definition);
+            ConfigureHud(definition);
+        }
+
+        /// <summary>Prépare le HUD pour le niveau : nom, objectif et chrono.</summary>
+        private void ConfigureHud(LevelDefinition definition)
+        {
             _hudView.SetLevelName(definition.DisplayName);
+            _hudView.SetGoal(definition.GoalDescription, definition.TimeLimitSeconds > 0f);
+            _hudView.SetScore(0);
+            _hudView.HideCombo();
+            if (definition.TimeLimitSeconds > 0f)
+            {
+                _hudView.SetTimeRemaining(definition.TimeLimitSeconds);
+            }
+        }
+
+        private void OnScoreChanged(int score)
+        {
+            _hudView.SetScore(score);
+        }
+
+        private void OnComboChanged(int multiplier)
+        {
+            if (multiplier >= 2)
+            {
+                _hudView.ShowCombo(multiplier);
+            }
+            else
+            {
+                _hudView.HideCombo();
+            }
         }
 
         private void RebuildViews()
@@ -225,6 +263,7 @@ namespace ColorFlow.Game.Presentation
             _conveyorView.Render(_game.Conveyor.Items);
             _hudView.SetProgress(_game.PaintedPixels, _game.TargetPixels);
             _hudView.HideResult();
+            _coinsAwarded = false;
         }
 
         private void OnLevelRestarted()
@@ -239,7 +278,7 @@ namespace ColorFlow.Game.Presentation
 
             if (_gridView.TryGetCellWorldPosition(x, y, out var world))
             {
-                UiParticles.Sparkle(_particleLayer, _root.InverseTransformPoint(world), UiFactory.ToColor(color), 5);
+                UiParticles.Sparkle(_particleLayer, _root.InverseTransformPoint(world), UiFactory.ToColor(color), 4);
             }
         }
 
@@ -260,18 +299,53 @@ namespace ColorFlow.Game.Presentation
             {
                 AudioManager.PlayWin();
                 Haptics.Impact();
-                _hudView.ShowResult(state);
+                _hudView.ShowResult(state, BuildObjectiveLine(state), BuildStats(state));
             }
             else if (state == GameState.Lost)
             {
                 Haptics.Impact();
                 TweenRunner.Run(Tween.Shake(_shakeRoot, Vector2.zero, 26f, 0.5f));
-                _hudView.ShowResult(state);
+                _hudView.ShowResult(state, BuildObjectiveLine(state), BuildStats(state));
             }
             else
             {
                 _hudView.HideResult();
             }
+        }
+
+        /// <summary>Ligne « objectif atteint / manqué » de l'écran de fin.</summary>
+        private string BuildObjectiveLine(GameState state)
+        {
+            var level = _game.Level;
+            if (state == GameState.Won)
+            {
+                switch (level.GoalType)
+                {
+                    case GoalType.ScoreTarget:
+                        return "Objectif atteint : " + level.TargetScore + " pts";
+                    case GoalType.TimeAttack:
+                        return "Objectif atteint : en " + Mathf.CeilToInt(_game.ElapsedTime) + " s";
+                    default:
+                        return "Objectif atteint : motif rempli";
+                }
+            }
+
+            return GoalRules.DescribeFailure(level.GoalType, _game.Score, level.TargetScore, level.TimeLimitSeconds);
+        }
+
+        /// <summary>Ligne « score + pièces gagnées » ; crédite le portefeuille.</summary>
+        private string BuildStats(GameState state)
+        {
+            var won = state == GameState.Won;
+            var coins = EconomyRules.CoinsForRun(_game.Score, won);
+
+            if (!_coinsAwarded)
+            {
+                MetaProgress.AddCoins(coins);
+                _coinsAwarded = true;
+            }
+
+            return "Score " + _game.Score + "  ·  +" + coins + " pièces";
         }
 
         private void OnPaintResolved(Creature creature, PaintResult result)
@@ -288,8 +362,16 @@ namespace ColorFlow.Game.Presentation
 
                 if (_hasLastTap)
                 {
-                    UiParticles.Splash(_particleLayer, _lastTapPosition, UiFactory.ToColor(creature.Color), 14, 1f);
+                    var color = UiFactory.ToColor(result.Color);
+                    var power = result.Kind == CreatureKind.Normal ? 1f : 1.35f;
+                    var count = 10 + result.PaintedCount * 2;
+                    UiParticles.Splash(_particleLayer, _lastTapPosition, color, count, power);
                     _hasLastTap = false;
+                }
+
+                if (result.Kind != CreatureKind.Normal)
+                {
+                    AudioManager.PlayPop();
                 }
 
                 _conveyorView.PlayTapBounce(creature);

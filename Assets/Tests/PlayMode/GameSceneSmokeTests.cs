@@ -31,7 +31,7 @@ namespace ColorFlow.Tests.PlayMode
             ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
             yield return null;
 
-            Assert.AreEqual(before + 1, controller.PaintedPixels, "Le tap n'a pas rempli de pixel.");
+            Assert.Greater(controller.PaintedPixels, before, "Le tap n'a pas rempli de pixel.");
             Assert.AreEqual(0, controller.Game.Conveyor.Count, "La créature n'a pas quitté le tapis.");
         }
 

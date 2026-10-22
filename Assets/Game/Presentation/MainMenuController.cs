@@ -20,6 +20,9 @@ namespace ColorFlow.Game.Presentation
         private LevelData[] _levels;
         private int _selectedIndex;
         private float _time;
+        private Text _coinLabel;
+        private Text _hintLabel;
+        private ShopPanel _shop;
 
         private void Awake()
         {
@@ -32,9 +35,12 @@ namespace ColorFlow.Game.Presentation
             BuildBackground(root);
             BuildTitle(root);
             BuildFloatingBlobs(root);
+            BuildWallet(root);
             BuildLevelChips(root);
             BuildPlayButton(root);
             BuildHint(root);
+            BuildShopButton(root);
+            BuildShop(root);
 
             SceneTransition.FadeIn();
         }
@@ -166,6 +172,71 @@ namespace ColorFlow.Game.Presentation
             }
         }
 
+        private void BuildWallet(RectTransform root)
+        {
+            var wallet = UiFactory.CreateCard("Wallet", root, JuicePalette.Paper, 36f);
+            UiFactory.SetRect(
+                wallet,
+                new Vector2(1f, 1f),
+                new Vector2(1f, 1f),
+                new Vector2(1f, 1f),
+                new Vector2(-36f, -36f),
+                new Vector2(248f, 92f));
+
+            var coin = UiFactory.CreateImage("Coin", wallet, Color.white);
+            coin.sprite = ArtFactory.CoinIcon();
+            coin.preserveAspect = true;
+            UiFactory.SetRect(
+                coin.rectTransform,
+                new Vector2(0f, 0.5f),
+                new Vector2(0f, 0.5f),
+                new Vector2(0f, 0.5f),
+                new Vector2(18f, 0f),
+                new Vector2(56f, 56f));
+
+            _coinLabel = UiFactory.CreateText(
+                "Coins",
+                wallet,
+                MetaProgress.Coins.ToString(),
+                38,
+                JuicePalette.Ink,
+                TextAnchor.MiddleLeft);
+            UiFactory.Stretch(_coinLabel.rectTransform, 84f, 6f, 16f, 6f);
+        }
+
+        private void BuildShopButton(RectTransform root)
+        {
+            var shop = UiFactory.CreateButton3D(
+                "Shop",
+                root,
+                "BOUTIQUE",
+                JuicePalette.Violet,
+                Color.white,
+                40,
+                14f);
+            UiFactory.SetRect(
+                shop.GetComponent<RectTransform>(),
+                new Vector2(1f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(-36f, 150f),
+                new Vector2(320f, 120f));
+            shop.onClick.AddListener(() => _shop?.Toggle());
+        }
+
+        private void BuildShop(RectTransform root)
+        {
+            _shop = new ShopPanel(root, RefreshWallet);
+        }
+
+        private void RefreshWallet()
+        {
+            if (_coinLabel != null)
+            {
+                _coinLabel.text = MetaProgress.Coins.ToString();
+            }
+        }
+
         private void BuildLevelChips(RectTransform root)
         {
             _levels = LevelCatalog.All();
@@ -188,14 +259,20 @@ namespace ColorFlow.Game.Presentation
             }
 
             var count = _levels.Length;
+            const int columns = 3;
             const float width = 300f;
             const float gap = 30f;
-            var total = count * width + (count - 1) * gap;
 
             for (var i = 0; i < count; i++)
             {
                 var index = i;
                 var level = _levels[i];
+
+                var row = i / columns;
+                var column = i % columns;
+                var inRow = Mathf.Min(columns, count - row * columns);
+                var x = -((inRow - 1) * (width + gap)) * 0.5f + column * (width + gap);
+                var y = -205f - row * 162f;
 
                 var chip = UiFactory.CreateRect("Chip_" + i, root);
                 UiFactory.SetRect(
@@ -203,7 +280,7 @@ namespace ColorFlow.Game.Presentation
                     new Vector2(0.5f, 0.5f),
                     new Vector2(0.5f, 0.5f),
                     new Vector2(0.5f, 0.5f),
-                    new Vector2(-total * 0.5f + width * 0.5f + i * (width + gap), -230f),
+                    new Vector2(x, y),
                     new Vector2(width, 150f));
 
                 var shadow = UiFactory.CreateGlow("Shadow", chip, JuicePalette.ShadowSoft);
@@ -318,7 +395,7 @@ namespace ColorFlow.Game.Presentation
             var footer = UiFactory.CreateText(
                 "Footer",
                 root,
-                "Sprint 1 — Juice & UI/UX",
+                "Sprint 2 — Combos, pouvoirs & boutique",
                 34,
                 JuicePalette.WithAlpha(JuicePalette.Ink, 0.55f));
             UiFactory.SetRect(
@@ -338,16 +415,17 @@ namespace ColorFlow.Game.Presentation
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
-                new Vector2(0f, -450f),
+                new Vector2(0f, -540f),
                 new Vector2(800f, 100f));
 
             var label = UiFactory.CreateText(
                 "HintText",
                 hint,
-                "Tape un blob pour peindre sa couleur !",
+                "Choisis un niveau, puis tape les blobs !",
                 34,
                 JuicePalette.InkSoft);
             UiFactory.Stretch(label.rectTransform, 26f, 8f, 26f, 8f);
+            _hintLabel = label;
         }
 
         private void Select(int index, bool withSound = true)
@@ -374,6 +452,11 @@ namespace ColorFlow.Game.Presentation
             if (withSound)
             {
                 AudioManager.PlayPop();
+            }
+
+            if (_hintLabel != null)
+            {
+                _hintLabel.text = _levels[_selectedIndex].GoalDescription;
             }
         }
 

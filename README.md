@@ -1,28 +1,35 @@
-# Color Flow — Prototype Sprint 0
+# Color Flow — Sprint 2
 
-Puzzle hybride mobile (portrait, public 8–14 ans). Ce dépôt contient **uniquement
-la boucle de jeu core** du Sprint 0 : aucun art final, aucun son, aucune
-monétisation, aucune sauvegarde.
+Puzzle hybride mobile (portrait, public 8–14 ans). Le dépôt contient le jeu
+complet **Sprint 2** : boucle de jeu, blobs spéciaux, score et combos, objectifs
+variables, économie de pièces, boutique de skins et sauvegarde locale.
+
+Aucun asset externe : tous les visuels (blobs, symboles, pièces, accessoires),
+les animations, l'UI et les sons sont **générés par le code** à l'exécution.
 
 ## Contenu
 
 - Grille N×M décrite par des données, peinte par des créatures colorées.
-- Tapis roulant FIFO de 5 créatures.
-- Spawn automatique de créatures issues des couleurs encore utiles.
-- Victoire quand le motif est complet, défaite quand le tapis déborde.
-- 3 niveaux placeholder : croix, cœur, damier.
-- Écran de fin avec bouton « Rejouer ».
+- Tapis roulant FIFO de 5 créatures, spawn équitable (aucune couleur morte).
+- **3 blobs spéciaux** tirés à 10 % : bombe 3×3, arc-en-ciel, ligne.
+- **Score** (10 pts/pixel) et **combos ×2 / ×3 / ×4** sur 1,5 s.
+- **3 objectifs** : remplir le motif, atteindre un score en 60 s, remplir en 30 s.
+- **6 niveaux** de test, dont 3 dédiés aux nouveaux objectifs.
+- **Pièces d'or** gagnées selon le score, **boutique** et **3 skins** achetables.
+- Sauvegarde `PlayerPrefs` (pièces, skins possédés, skin équipé).
+- Écran de fin indiquant objectif atteint ou manqué, score et pièces gagnées.
 
 ## Prérequis
 
 | Outil | Version |
 |---|---|
 | Unity | **Unity 6 LTS** (`6000.0.23f1` ou plus récent) |
-| Modules Unity | Android Build Support (+ SDK, NDK, JDK) pour l'APK |
+| Modules Unity | Android Build Support (+ SDK, NDK r23b, JDK 17) pour l'APK |
 | Test Framework | inclus via `Packages/manifest.json` (1.4.5) |
+| .NET SDK | 8.0 (uniquement pour les tests Core hors Unity) |
 
-Le projet utilise le **render pipeline Built-in en 2D** (voir la justification
-plus bas) : aucune dépendance URP, aucun package externe.
+Le projet utilise le **render pipeline Built-in en 2D** : aucune dépendance URP,
+aucun package externe.
 
 ## Ouvrir le projet
 
@@ -31,18 +38,47 @@ plus bas) : aucune dépendance URP, aucun package externe.
    compile les assemblies (`ColorFlow.Core`, `ColorFlow.Game`, tests).
 3. Ouvrir `Assets/Scenes/Boot.unity` puis **Play**.
 
-Les trois scènes sont déjà dans **File > Build Settings** : `Boot`, `MainMenu`,
+Les trois scènes sont déjà dans **File > Build Profiles** : `Boot`, `MainMenu`,
 `Game`.
 
 ## Jouer
 
-- Le jeu démarre sur le menu, 3 boutons (un par niveau).
-- Une créature apparaît toutes les 1,2 à 1,6 s sur le tapis (5 emplacements).
-- **Taper une créature** peint le prochain pixel de sa couleur (parcours
-  haut-gauche → bas-droite).
+- Le menu propose **6 niveaux** en grille, une **bourse de pièces** et un bouton
+  **BOUTIQUE**.
+- Une créature apparaît régulièrement sur le tapis (5 emplacements).
+- **Taper une créature** peint le prochain pixel de sa couleur
+  (haut-gauche → bas-droite).
 - Une créature dont la couleur n'est plus nécessaire est refusée : elle reste
   sur le tapis et un message l'indique.
-- Tapis plein à la 6ᵉ créature → **Perdu**. Motif complet → **Gagné**.
+- **Bombe** : peint le carré 3×3 autour du prochain pixel de sa couleur.
+- **Arc-en-ciel** : peint le prochain pixel cible, quelle que soit sa couleur.
+- **Ligne** : peint toute la rangée ou colonne la plus rentable.
+- **Combo** : enchaîner deux blobs de même couleur affichée en moins de 1,5 s
+  multiplie les points (×2, ×3, ×4 maximum).
+- Tapis plein à la 6ᵉ créature → **Perdu** (ou score non atteint / temps écoulé).
+- Objectif rempli → **Gagné**. Les pièces sont créditées automatiquement.
+
+### Objectifs
+
+| Objectif | Victoire | Défaite |
+|---|---|---|
+| `FillAll` | motif entièrement peint | tapis plein |
+| `ScoreTarget` | score cible avant la limite (60 s par défaut) | chrono, tapis plein, motif fini avant le score |
+| `TimeAttack` | motif fini avant la limite (30 s par défaut) | chrono, tapis plein |
+
+### Boutique et skins
+
+| Skin | Prix | Accessoire dessiné |
+|---|---|---|
+| Classique | 0 | aucun |
+| Lunettes | 120 | lunettes rondes |
+| Chapeau | 200 | chapeau à bandeau rose |
+| Couronne | 320 | couronne dorée |
+
+Les pièces gagnées valent `score / 40 + (20 si victoire, sinon 3)`.
+Les skins achetés et le skin équipé sont sauvegardés dans `PlayerPrefs` et
+restaurés au lancement. Les accessoires sont masqués sur les blobs spéciaux pour
+laisser le symbole de pouvoir lisible.
 
 ## Tests
 
@@ -50,8 +86,8 @@ Les trois scènes sont déjà dans **File > Build Settings** : `Boot`, `MainMenu
 
 **Window > General > Test Runner**
 
-- Onglet **EditMode** → *Run All*
-- Onglet **PlayMode** → *Run All* (smoke test de la scène `Game`)
+- Onglet **EditMode** → *Run All* (86 tests)
+- Onglet **PlayMode** → *Run All* (3 smoke tests)
 
 ### En ligne de commande
 
@@ -76,17 +112,18 @@ lancer les tests sur une CI sans licence Unity.
 
 ## Build Android
 
-1. **File > Build Profiles** (ou Build Settings) → **Android** → *Switch Platform*.
-2. Vérifier dans **Player Settings** :
-   - Orientation : **Portrait** ;
-   - Package name : `com.digitalholding.colorflow` ;
-   - Scripting backend : **IL2CPP**, architecture **ARM64** ;
-   - Minimum API level : 23.
-3. **Build** → APK, ou **Build And Run** avec un appareil branché en USB
-   (débogage USB activé).
+```bash
+powershell -ExecutionPolicy Bypass -File .\build-android.ps1
+```
 
-Le Canvas utilise `CanvasScaler` en **Scale With Screen Size**, référence
-**1080×1920**, match `0.5` : l'UI s'adapte aux ratios 18:9 à 21:9.
+Le script détecte Unity, bascule sur le JDK 17 si `JAVA_HOME` pointe sur une
+version plus récente, résout le NDK r23b, construit l'APK, vérifie l'activité
+lançable avec `aapt` et affiche taille + SHA-256. Sortie :
+`Builds/Android/colorflow-debug.apk`. Détails et dépannage : `BUILD.md`.
+
+Configuration : portrait, package `com.digitalholding.colorflow`, IL2CPP,
+ARMv7 + ARM64, minSdk 23. Le Canvas utilise `CanvasScaler` en **Scale With
+Screen Size**, référence **1080×1920**, match `0.5`.
 
 ## Architecture
 
@@ -94,21 +131,23 @@ Le Canvas utilise `CanvasScaler` en **Scale With Screen Size**, référence
 Assets/
   Core/                      # Domaine pur C# — AUCUNE référence Unity
     ColorFlow.Core.asmdef    # noEngineReferences: true
-    Model/                   # RgbaColor, Creature, GridModel, ConveyorQueue,
-                             # LevelDefinition, LevelBuilder, GameState
-    Rules/                   # PaintResolver, PaintResult, PaintFailureReason
+    Model/                   # RgbaColor, Creature, CreatureKind, GridModel,
+                             # ConveyorQueue, LevelDefinition, LevelBuilder,
+                             # GameState, GoalType
+    Rules/                   # PaintResolver, PaintResult, PaintAllowance,
+                             # ScoreRules, EconomyRules, GoalRules
     Flow/                    # GameController, CreatureSpawner, IRandomSource
   Game/                      # Couche Unity
     ColorFlow.Game.asmdef    # référence ColorFlow.Core
-    Data/LevelData.cs        # ScriptableObject -> LevelDefinition
+    Data/                    # LevelData, LevelCatalog, MetaProgress, SkinCatalog
     Presentation/            # GameSceneController, GridView, ConveyorView,
-                             # HudView, UiFactory, MainMenuController,
-                             # BootController, LevelCatalog
-  Resources/Levels/          # 3 niveaux placeholder (.asset)
+                             # HudView, ShopPanel, UiFactory, ArtFactory,
+                             # MainMenuController, BootController
+  Resources/Levels/          # 6 niveaux (.asset)
   Scenes/                    # Boot, MainMenu, Game
   Tests/
-    EditMode/                # 50 tests NUnit (domaine uniquement)
-    PlayMode/                # smoke test scène Game + restart
+    EditMode/                # 86 tests NUnit (domaine uniquement)
+    PlayMode/                # scènes Game / MainMenu / restart
 Tools/CoreTests/             # compilation/tests hors Unity (CI)
 ```
 
@@ -116,13 +155,15 @@ Tools/CoreTests/             # compilation/tests hors Unity (CI)
 
 - **Modèle** : `GridModel`, `ConveyorQueue`, `LevelDefinition` — état et règles,
   zéro Unity.
-- **Règles** : `PaintResolver` décide quelle peinture appliquer ou pourquoi
-  c'est invalide.
-- **Contrôleur** : `GameController` orchestre spawn, tap, transitions
-  `Playing / Won / Lost`. Il est **pur C#** : le MonoBehaviour lui transmet
-  seulement `Time.deltaTime` et les taps.
-- **Vue** : `GameSceneController` + `GridView` / `ConveyorView` / `HudView`
-  construisent l'UI et écoutent les événements du contrôleur.
+- **Règles** : `PaintResolver` décide quelle peinture appliquer (simple ou
+  spéciale) et pourquoi c'est invalide ; `PaintAllowance` garantit qu'un effet
+  de zone ne rend jamais morte une créature déjà posée ; `ScoreRules`,
+  `EconomyRules` et `GoalRules` isolent score, monnaie et objectifs.
+- **Contrôleur** : `GameController` orchestre spawn, tap, score, combo, chrono
+  et transitions `Playing / Won / Lost`. Il est **pur C#** : le MonoBehaviour
+  lui transmet seulement `Time.deltaTime` et les taps.
+- **Vue** : `GameSceneController` + `GridView` / `ConveyorView` / `HudView` /
+  `ShopPanel` construisent l'UI et écoutent les événements du contrôleur.
 
 `Core/` ne contient que `using System;`, `System.Collections.Generic` et
 `System.Globalization`. L'asmdef `noEngineReferences: true` fait échouer la
@@ -130,8 +171,8 @@ compilation Unity si une référence Unity y est ajoutée.
 
 ### Pourquoi Built-in 2D plutôt qu'URP 2D
 
-- Sprint 0 : uniquement des `Image` UI à plat → aucun besoin de post-processing,
-  lumières 2D ni shaders.
+- Uniquement des `Image` UI à plat → aucun besoin de post-processing, lumières
+  2D ni shaders.
 - URP ajoute un package + des assets de pipeline à configurer : contraire à la
   contrainte « pas de dépendance externe ».
 - Built-in démarre plus vite et produit un APK plus léger ; le passage à URP
@@ -148,6 +189,9 @@ compilation Unity si une référence Unity y est ajoutée.
 | `rows` | une ligne de texte par rangée, `.` = vide, `1`..`9` = index palette |
 | `palette` | couleurs hexadécimales (`#RRGGBB`) |
 | `spawnInterval` | secondes entre deux créatures |
+| `goalType` | `FillAll` (0), `ScoreTarget` (1), `TimeAttack` (2) |
+| `targetScore` | score à atteindre (`ScoreTarget`) |
+| `timeLimitSeconds` | durée max ; 0 = valeur par défaut de l'objectif |
 
 Exemple (croix 7×7) :
 
@@ -162,15 +206,21 @@ rows:
 - ..111..
 palette:
 - '#FF7A59'
+spawnInterval: 1.4
+goalType: 0
+targetScore: 300
+timeLimitSeconds: 0
 ```
 
 Ajouter un niveau = créer un `LevelData` dans `Assets/Resources/Levels/`
 (clic droit → **Create > Color Flow > Niveau**). Il apparaît automatiquement
-dans le menu, sans modification de code.
+dans le menu (grille de 3 colonnes), sans modification de code.
 
-## Limites assumées du Sprint 0
+## Limites assumées du Sprint 2
 
-- Aucun art final, son, haptique, tutoriel, analytics, IAP ou pub.
-- UI construite à l'exécution (pas de prefabs) pour rester sans art.
-- Aucune sauvegarde de progression.
-- 3 niveaux uniquement.
+- Pas de test sur appareil physique (vérification statique + tests Unity).
+- Pas de nouvelle musique ni de voix (sons procéduraux réutilisés).
+- Progression de niveaux non sauvegardée (seules pièces et skins le sont).
+- Pas d'analytics, pas d'IAP, pas de publicité.
+- Interface en français uniquement.
+- Équilibrage (400 pts/60 s, prix des skins) à confirmer par des parties réelles.

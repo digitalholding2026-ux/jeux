@@ -64,12 +64,48 @@ Write-Host "APK      : $ApkPath"
 Write-Host "Log      : $LogFile"
 Write-Host ""
 
+# --- Outils Android : Unity 6000.0.23f1 exige un JDK 17 et le NDK r23b.
+# JAVA_HOME global peut pointer sur un JDK plus recent (refuse par Unity) :
+# on retombe alors sur le JDK 17 portable si present.
+function Get-JavaMajor([string]$JavaHome) {
+    if (-not $JavaHome) { return 0 }
+    $release = Join-Path $JavaHome 'release'
+    if (-not (Test-Path -LiteralPath $release)) { return 0 }
+    $match = Select-String -LiteralPath $release -Pattern '^JAVA_VERSION="(\d+)' | Select-Object -First 1
+    if ($match) { return [int]$match.Matches[0].Groups[1].Value }
+    return 0
+}
+
+$javaMajor = Get-JavaMajor $env:JAVA_HOME
+if ($javaMajor -ne 17) {
+    $jdk17 = Join-Path $env:LOCALAPPDATA 'Portable\jdk17'
+    if (Test-Path -LiteralPath (Join-Path $jdk17 'bin\java.exe')) {
+        Write-Host "JAVA_HOME : JDK $javaMajor detecte, bascule sur JDK 17 -> $jdk17"
+        $env:JAVA_HOME = $jdk17
+    } else {
+        Write-Host "AVERTISSEMENT : JDK 17 introuvable. Unity risque de refuser le build." -ForegroundColor Yellow
+    }
+}
+Write-Host "JAVA_HOME : $env:JAVA_HOME"
+
+if (-not $env:ANDROID_NDK_HOME -and $env:ANDROID_HOME) {
+    $ndk23 = Join-Path $env:ANDROID_HOME 'ndk\23.1.7779620'
+    if (Test-Path -LiteralPath $ndk23) {
+        $env:ANDROID_NDK_HOME = $ndk23
+        $env:ANDROID_NDK_ROOT = $ndk23
+    }
+}
+
 if (-not $env:ANDROID_NDK_HOME) {
     Write-Host "AVERTISSEMENT : ANDROID_NDK_HOME n'est pas defini." -ForegroundColor Yellow
     Write-Host "  Unity 6000.0.23f1 exige le NDK r23b (23.1.7779620) et ne le resout pas" -ForegroundColor Yellow
     Write-Host "  toujours via External Tools. Voir BUILD.md section 9.3." -ForegroundColor Yellow
     Write-Host ""
+} else {
+    Write-Host "NDK      : $env:ANDROID_NDK_HOME"
 }
+
+Write-Host ""
 
 $start = Get-Date
 
