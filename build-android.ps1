@@ -115,7 +115,37 @@ if (-not (Test-Path -LiteralPath $ApkPath -PathType Leaf)) {
 $bytes = (Get-Item -LiteralPath $ApkPath).Length
 $sizeMb = [math]::Round($bytes / 1MB, 2)
 
+# --- Garde-fou : sans activite lançable, l'APK s'installe mais n'a ni icone ni
+# bouton "Ouvrir". On refuse de livrer un APK dans cet etat.
+$aapt = $null
+if ($env:ANDROID_HOME) {
+    $buildTools = Join-Path $env:ANDROID_HOME 'build-tools'
+    if (Test-Path -LiteralPath $buildTools) {
+        $aapt = Get-ChildItem -LiteralPath $buildTools -Directory |
+            Sort-Object Name -Descending |
+            ForEach-Object { Join-Path $_.FullName 'aapt.exe' } |
+            Where-Object { Test-Path -LiteralPath $_ } |
+            Select-Object -First 1
+    }
+}
+
+if ($aapt) {
+    $badging = & $aapt dump badging $ApkPath 2>&1
+    if (-not ($badging | Select-String -SimpleMatch 'launchable-activity:')) {
+        Write-Host "ECHEC : l'APK ne declare aucune activite lançable (pas d'icone ni de bouton Ouvrir)." -ForegroundColor Red
+        Write-Host "Verifier qu'aucun Assets/Plugins/Android/AndroidManifest.xml ne remplace le manifeste Unity." -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "Verification : activite lançable presente."
+} else {
+    Write-Host "AVERTISSEMENT : aapt introuvable, verification du manifeste ignoree." -ForegroundColor Yellow
+}
+
+$hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $ApkPath).Hash
+
 Write-Host "SUCCES : $ApkPath"
 Write-Host "Taille  : $bytes octets ($sizeMb Mo)"
+Write-Host "SHA-256 : $hash"
 Write-Host "Duree   : ${duration}s"
 exit 0

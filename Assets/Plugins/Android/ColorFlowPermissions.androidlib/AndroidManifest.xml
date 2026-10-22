@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bibliothèque Android vide dont le seul rôle est d'ajouter la permission
+  VIBRATE au manifeste final, sans remplacer le manifeste principal généré
+  par Unity (qui contient l'activité lançable et l'icône de l'application).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.digitalholding.colorflow.permissions">
+    <uses-permission android:name="android.permission.VIBRATE" />
+</manifest>
