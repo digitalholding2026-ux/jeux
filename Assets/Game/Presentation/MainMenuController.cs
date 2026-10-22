@@ -42,8 +42,20 @@ namespace ColorFlow.Game.Presentation
             BuildWallet(safe);
             BuildLevelChips(safe);
             BuildHint(safe);
-            BuildPlayButton(safe);
-            BuildShopButton(safe);
+
+            // Barre basse étirée entre les bords sûrs : quelle que soit la
+            // largeur (16:9 → 21:9), JOUER et BOUTIQUE gardent 24 px de marge
+            // et ne peuvent jamais se chevaucher.
+            var bottomBar = UiFactory.CreateRect("BottomBar", safe);
+            UiFactory.SetRect(
+                bottomBar,
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(0.5f, 0f),
+                Vector2.zero,
+                new Vector2(-48f, 200f));
+            BuildPlayButton(bottomBar);
+            BuildShopButton(bottomBar);
             BuildShop(root);
 
             SceneTransition.FadeIn();
@@ -223,8 +235,8 @@ namespace ColorFlow.Game.Presentation
                 new Vector2(1f, 0f),
                 new Vector2(1f, 0f),
                 new Vector2(1f, 0f),
-                new Vector2(-24f, 46f),
-                new Vector2(320f, 124f));
+                new Vector2(0f, 46f),
+                new Vector2(300f, 124f));
 
             // Icône dessinée par le code (sac de boutique) + libellé décalé.
             var face = shop.transform.Find("Face");
@@ -434,10 +446,10 @@ namespace ColorFlow.Game.Presentation
 
             UiFactory.SetRect(
                 play.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0f),
-                new Vector2(0.5f, 0f),
-                new Vector2(0.5f, 0f),
-                new Vector2(-200f, 24f),
+                new Vector2(0f, 0f),
+                new Vector2(0f, 0f),
+                new Vector2(0f, 0f),
+                new Vector2(0f, 24f),
                 new Vector2(580f, 176f));
 
             play.onClick.AddListener(StartSelected);

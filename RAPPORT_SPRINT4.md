@@ -72,14 +72,18 @@ layout est ancré :
 | Sous-titre | haut-centre | −186 px |
 | Portefeuille | haut-droite | marge 24 / 20 px |
 | Cartes de niveaux | haut-centre | grille 3 colonnes, à partir de −286 px |
-| JOUER | bas-centre | marge 24 px, 580×176 |
-| BOUTIQUE | bas-droite | marge 24 px, 320×124 |
+| JOUER | barre basse, à gauche | 580×176, marge 24 px via la barre |
+| BOUTIQUE | barre basse, à droite | 300×124, marge 24 px via la barre |
 | Aide | bas-centre | au-dessus de la barre de boutons |
 
-Les cartes font 296×132 avec 24×22 px d'espacement ; le nombre de lignes s'adapte
-au nombre de niveaux visibles (2 ou 3). Les libellés longs passent en
-`resizeTextForBestFit` (18–32 px) pour ne jamais être tronqués. Aucun élément ne
-dépend plus du centre absolu de l'écran.
+La barre basse est **étirée entre les deux bords sûrs** (largeur = aire sûre − 48)
+et haute de 200 px : JOUER s'ancre à gauche, BOUTIQUE à droite. Sur un canvas 20:9
+de 966 px de large, la barre mesure 918 px, JOUER occupe 24→604 et BOUTIQUE
+642→942, soit 38 px d'écart et **aucun chevauchement**. Les cartes font 296×132
+avec 24×22 px d'espacement ; le nombre de lignes s'adapte au nombre de niveaux
+visibles (2 ou 3). Les libellés longs passent en `resizeTextForBestFit` (18–32 px)
+pour ne jamais être tronqués. Aucun élément ne dépend plus du centre absolu de
+l'écran.
 
 ### 2.3 Bouton BOUTIQUE et icône dessinée
 
@@ -410,16 +414,16 @@ powershell -ExecutionPolicy Bypass -File .\build-android.ps1
 Le script vérifie le JDK 17, le NDK r23b, lance Unity en batchmode
 (`BuildScript.BuildAndroidDebug`), contrôle avec `aapt` qu'une **activité lançable**
 existe, puis calcule le SHA-256. Le premier build complet de cette livraison a pris
-**1246 s** (20 min 46 s) ; le rebuild final après l'ajustement de la barre de
-boutons a pris **170 s** (relink incrémental, 151 s côté Unity).
+**1246 s** (20 min 46 s) ; le rebuild final après les ajustements de la barre de
+boutons a pris **205 s** (relink incrémental).
 
 ### 8.2 Artefact
 
 | | |
 |---|---|
 | **Chemin** | `Builds/Android/colorflow-debug.apk` |
-| **Taille** | 47 953 519 octets (45,73 Mo) |
-| **SHA-256** | `4429017ED35D0DD67574324D550BF354A91F8D6CCB6C34FFF5B91CBB787BA4F4` |
+| **Taille** | 47 948 058 octets (45,73 Mo) |
+| **SHA-256** | `0394C6807EA0D26785CFCEF957FA695F188D50EC962049209D74EC08733C16FD` |
 | **Package** | `com.digitalholding.colorflow` |
 | **Version** | 0.2.0 — versionCode 3 |
 | **SDK** | minSdk 23, targetSdk 35, compileSdk 35 |
