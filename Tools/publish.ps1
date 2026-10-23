@@ -83,8 +83,20 @@ Lancer une fois :  & "$gh" auth login --hostname github.com --git-protocol https
 Puis relancer ce script.
 "@
     }
-    # git doit utiliser le jeton de gh pour pousser
-    & $git config --local credential.https://github.com.helper "!`"$gh`" auth git-credential"
+}
+
+# Le helper `!gh auth git-credential` ne fonctionne pas avec le sh busybox de
+# MinGit (erreur "-c: applet not found"). On pousse donc avec le jeton de gh
+# injecte dans l'URL, sur la seule commande push (jamais stocke dans .git/config).
+$remoteUrl = ((& $git remote get-url origin) -join '').Trim()
+if ($remoteUrl -notmatch '^https://') { Fail "remote 'origin' inattendu : $remoteUrl" }
+$ghToken = $null
+function Push-Refs([string[]]$refs) {
+    if (-not $ghToken) { $ghToken = ((& $gh auth token) -join '').Trim() }
+    if (-not $ghToken) { Fail "jeton gh introuvable : relancer 'gh auth login'." }
+    $secure = $remoteUrl -replace '^https://', "https://x-access-token:$ghToken@"
+    & $git -c credential.helper= push $secure @refs
+    if ($LASTEXITCODE -ne 0) { Fail "push en echec ($($refs -join ' '))" }
 }
 
 # --- Version ----------------------------------------------------------------
@@ -169,7 +181,7 @@ if ($staged) {
 
 # --- 5. Push ----------------------------------------------------------------
 Step "5/6 Push origin main"
-if ($DryRun) { Info "simule" } else { Run $git @('push', 'origin', 'main') }
+if ($DryRun) { Info "simule" } else { Push-Refs @('main') }
 
 # --- 6. Tag + release -------------------------------------------------------
 Step "6/6 Tag et release GitHub"
@@ -180,7 +192,7 @@ if (-not $existingTag) {
 } else {
     Info "tag $tag deja present"
 }
-Run $git @('push', 'origin', $tag)
+Push-Refs @($tag)
 
 $previousTag = (& $git describe --tags --abbrev=0 "$tag^" 2>$null) -join ''
 $range = if ($previousTag) { "$previousTag..$tag" } else { $tag }
