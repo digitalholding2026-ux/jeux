@@ -6,3 +6,7 @@
 *.unity text eol=lf
 *.asset text eol=lf
 *.prefab text eol=lf
+
+# Code C# et documentation : LF (evite les diffs integrales).
+*.cs text eol=lf
+*.md text eol=lf
