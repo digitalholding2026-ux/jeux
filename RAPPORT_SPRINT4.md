@@ -366,18 +366,39 @@ réimplémentée dans la vue.
 | `Assets/Game/Presentation/ConveyorDragRelay.cs` | relais des interfaces de drag |
 | `Assets/Game/Presentation/ConveyorView.cs` | ghost, retour rebond, accessoires |
 | `Assets/Game/Presentation/GridView.cs` | blobs posés, surbrillance, screen→case, pulse |
+| `Assets/Game/Presentation/AudioManager.cs` | SFX + combo + musique, tout synthétisé |
 | `Assets/Resources/Levels/Level_Dino.asset` | œuf de Pâques |
 | `Assets/Tests/EditMode/Match3Tests.cs` | 20+ tests de règles match-3 |
 | `Assets/Tests/EditMode/AutoPlayMatch3Tests.cs` | auto-jeu intelligent |
 | `Assets/Tests/PlayMode/SprintTwoPointFiveTests.cs` | 5 tests UI/persistance/secret |
+| `Assets/Tests/PlayMode/SprintThreeAudioTests.cs` | 3 tests audio (musique, combo, stop/restart) |
 
-### 7.3 Résultats des tests
+### 7.3 Game feel et audio (Sprint 3 finalisé)
+
+| Effet | Implémentation |
+|---|---|
+| Blobs qui « respirent » | `ConveyorView.Update` : scale `1 ± 4,5 %` + flottement vertical, ombre synchrone |
+| Apparition rebond | `Tween.Scale` 0,25 → 1 en `Ease.OutElastic` (0,55 s) |
+| Case remplie | `Tween.PopCell` : 0,5 → 1,2 → 1,0 en 0,12 s |
+| Combo | texte « COMBO ×N ! » qui monte et s'estompe + `Tween.Shake` du plateau |
+| Victoire | confettis (110 particules) + « GAGNÉ ! » en `OutBack` |
+| Défaite | « PERDU » qui tombe du haut en `OutBounce` + son descendant |
+| Haptique | `Handheld.Vibrate` : tap court, impact sur combo/spécial, game over |
+| Sons | 100 % `AudioClip.Create` : pop, splotch (bruit filtré), spawn, clic, erreur, arpège de victoire, descente de défaite |
+| Son de combo | carillon 880 Hz + harmoniques, **+2 demi-tons par palier** (x2 → x7), source dédiée |
+| Musique | boucle de 12,8 s à 22 050 Hz (nappe Do/La m/Fa/Sol + arpège), fondu aux deux bords, `DontDestroyOnLoad` |
+
+Aucun fichier `.wav`/`.mp3` : tout est calculé au démarrage (~1,1 Mo de PCM pour
+la boucle). `AudioManager.Init()` lance la musique une seule fois ; elle survit aux
+changements de scène et n'est jamais redémarrée.
+
+### 7.4 Résultats des tests
 
 | Suite | Nombre | Résultat |
 |---|---|---|
 | Core via `dotnet test Tools/CoreTests/CoreTests.csproj` | 109 | ✅ 109/109 |
 | Unity EditMode (mêmes sources) | 109 | ✅ 109/109 |
-| Unity PlayMode | 9 | ✅ 9/9 |
+| Unity PlayMode | 12 | ✅ 12/12 |
 
 PlayMode :
 
@@ -392,6 +413,9 @@ PlayMode :
 | `Shop_Purchase_DeductsCoinsAndEquipsTheSkin` | achat, débit, équipement, message vert |
 | `EquippedSkin_IsRestoredOnTheNextGameLaunch` | skin rechargé depuis PlayerPrefs au relaunch |
 | `EasterEgg_StaysHidden_UntilThreeWins` | 6 cartes puis 7 après 3 victoires |
+| `Audio_StartsCodeGeneratedMusicLoop` | la boucle de fond démarre via `Init()` |
+| `Audio_ComboRaisesPitchWithoutStoppingMusic` | x2/x3/x6 ne coupent pas la musique |
+| `Audio_StopAndRestartMusic` | `StopMusic`/`PlayMusic` fonctionnent |
 
 Les tests PlayMode passent en batchmode `-nographics` ; ils exercent la vraie
 hiérarchie UI, les vrais `Button`, le vrai pipeline de drag et les vraies scènes.

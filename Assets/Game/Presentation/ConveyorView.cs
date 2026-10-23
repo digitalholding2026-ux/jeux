@@ -70,8 +70,6 @@ namespace ColorFlow.Game.Presentation
             }
         }
 
-        public event Action<Creature> CreatureTapped;
-
         /// <summary>Début du glisser d'un blob depuis le tapis.</summary>
         public event Action<Creature> DragStarted;
 

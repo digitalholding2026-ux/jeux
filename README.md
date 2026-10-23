@@ -8,9 +8,11 @@ adaptée aux encoches, le feedback de boutique et la persistance du skin.
 
 Aucun asset externe : tous les visuels (blobs, symboles, pièces, accessoires,
 icône de boutique), les animations, l'UI et les sons sont **générés par le code**
-à l'exécution.
+à l'exécution (SFX, combo qui monte en pitch, musique de fond en boucle).
 
 📄 Rapport détaillé : [RAPPORT_SPRINT4.md](RAPPORT_SPRINT4.md)
+📌 Règle de publication : [AGENTS.md](AGENTS.md) — chaque travail se termine par
+tests, build APK, commit, push et release `vX.Y.Z`.
 
 ## Contenu
 
@@ -244,7 +246,7 @@ dans le menu (grille de 3 colonnes), sans modification de code.
 ## Limites assumées de la livraison
 
 - Pas de test sur appareil physique (vérification statique + tests Unity).
-- APK debug en version 0.2.0 / code 3, non signé pour la release.
+- APK debug en version 0.3.0 / code 5, non signé pour la release.
 - Pas de gravité ni de cascades : le plateau est statique après chaque coup.
 - Progression des 6 niveaux standard non verrouillée ; seules les victoires
   (compteur de déblocage et œuf de Pâques) sont sauvegardées.

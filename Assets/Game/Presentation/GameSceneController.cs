@@ -295,6 +295,7 @@ namespace ColorFlow.Game.Presentation
         {
             if (multiplier >= 2)
             {
+                AudioManager.PlayCombo(multiplier);
                 _hudView.ShowCombo(multiplier);
             }
             else

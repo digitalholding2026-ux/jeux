@@ -205,7 +205,7 @@ namespace ColorFlow.Game.Presentation
 
                 if (animate)
                 {
-                    TweenRunner.Run(Tween.PopIn(cell.Fill.transform, 0.24f));
+                    TweenRunner.Run(Tween.PopCell(cell.Fill.transform, 0.12f));
                 }
                 else
                 {

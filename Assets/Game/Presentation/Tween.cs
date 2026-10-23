@@ -322,6 +322,53 @@ namespace ColorFlow.Game.Presentation
             }
         }
 
+        /// <summary>Apparition « pop » de case : 0.5 -> 1.2 -> 1.0 en ~0.12 s.</summary>
+        public static IEnumerator PopCell(Transform target, float duration = 0.12f)
+        {
+            if (target == null)
+            {
+                yield break;
+            }
+
+            const float from = 0.5f;
+            const float peak = 1.2f;
+            var up = duration * 0.45f;
+            var down = duration - up;
+
+            var elapsed = 0f;
+            while (elapsed < up)
+            {
+                if (target == null)
+                {
+                    yield break;
+                }
+
+                elapsed += Time.deltaTime;
+                var t = Mathf.Clamp01(elapsed / up);
+                target.localScale = Vector3.one * Mathf.LerpUnclamped(from, peak, Ease.OutQuad(t));
+                yield return null;
+            }
+
+            elapsed = 0f;
+            while (elapsed < down)
+            {
+                if (target == null)
+                {
+                    yield break;
+                }
+
+                elapsed += Time.deltaTime;
+                var t = Mathf.Clamp01(elapsed / down);
+                target.localScale = Vector3.one * Mathf.LerpUnclamped(peak, 1f, Ease.OutQuad(t));
+                yield return null;
+            }
+
+            if (target != null)
+            {
+                target.localScale = Vector3.one;
+            }
+        }
+
         /// <summary>Secousse horizontale amortie autour d'une position de repos.</summary>
         public static IEnumerator Shake(RectTransform target, Vector2 home, float amplitude = 22f, float duration = 0.45f)
         {

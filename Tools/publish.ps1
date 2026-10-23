@@ -57,6 +57,10 @@ if (-not $git) { Fail "git introuvable. Ajouter %LOCALAPPDATA%\Portable\git\cmd 
 if (-not $gh)  { Fail "gh (GitHub CLI) introuvable. Ajouter %LOCALAPPDATA%\Portable\gh au PATH." }
 if (-not $dotnet) { Fail "dotnet introuvable. Ajouter %LOCALAPPDATA%\Portable\dotnet au PATH." }
 
+# gh (release) exige git dans le PATH de l'enfant.
+$gitDir = Split-Path -Parent $git
+if (($env:PATH -split ';') -notcontains $gitDir) { $env:PATH = "$gitDir;$env:PATH" }
+
 # --- Environnement Android (session courante) --------------------------------
 $sdk = Join-Path $env:LOCALAPPDATA 'Portable\android-sdk'
 $jdk = Join-Path $env:LOCALAPPDATA 'Portable\jdk17'
