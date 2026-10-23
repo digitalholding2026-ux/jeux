@@ -1,16 +1,16 @@
 # RAPPORT FINAL — Color Flow
 
-## Hotfix UI 2.5 + Sprint 4 : glisser-déposer, match-3 et œuf de Pâques
+## Hotfix UI 2.5 + Sprint 3 (juice/audio) + Sprint 4 : glisser-déposer, match-3 et œuf de Pâques
 
 | | |
 |---|---|
-| **Livraison** | Hotfix Sprint 2.5 + Sprint 4 |
-| **Version APK** | 0.2.0 (versionCode 3), build debug |
+| **Livraison** | Hotfix Sprint 2.5 + Sprint 3 + Sprint 4 |
+| **Version APK** | 0.3.0 (versionCode 5), build debug |
 | **Plateforme** | Android, portrait, layout adaptatif 16:9 → 20:9 |
 | **Moteur** | Unity 6000.0.23f1, Built-in 2D, IL2CPP ARMv7 + ARM64 |
 | **Contrainte respectée** | zéro asset externe : visuels, icônes et sons générés par le code |
-| **Tests** | 109 EditMode/Core + 9 PlayMode, **tous verts** |
-| **APK** | `Builds/Android/colorflow-debug.apk` — 45,73 Mo |
+| **Tests** | 109 EditMode/Core + 12 PlayMode, **tous verts** |
+| **APK** | `Builds/Android/colorflow-debug.apk` — 37,65 Mo |
 
 ---
 
@@ -27,6 +27,12 @@ au redémarrage de l'application.
 introduire une résolution **match-3** (alignements, blobs Ligne/Bombe), remplir les
 motifs par les alignements, garder un **chrono visible**, révéler la victoire case
 par case et cacher un **niveau œuf de Pâques** (dinosaure) jusqu'à déblocage.
+
+**Sprint 3 (finalisé dans cette livraison)** — compléter le « juice » : son de combo
+cristallin qui monte en pitch (+2 demi-tons par palier) et musique de fond en boucle,
+tous deux synthétisés par code ; pop de case calibré 0,5 → 1,2 → 1,0 en 0,12 s.
+Le reste du livrable (respiration des blobs, squash, particules, confettis,
+haptique, SFX) était déjà en place et a été vérifié.
 
 | Livrable | Contenu | Statut |
 |---|---|---|
@@ -427,45 +433,41 @@ hiérarchie UI, les vrais `Button`, le vrai pipeline de drag et les vraies scèn
 ### 8.1 Commande
 
 ```powershell
-$env:JAVA_HOME='C:\Program Files\Microsoft\jdk-17.0.20.101-hotspot'
-$env:ANDROID_HOME='C:\Program Files\Unity\Hub\Editor\6000.0.23f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK'
-$env:ANDROID_SDK_ROOT=$env:ANDROID_HOME
-$env:ANDROID_NDK_HOME='C:\Program Files\Unity\Hub\Editor\6000.0.23f1\Editor\Data\PlaybackEngines\AndroidPlayer\NDK'
-$env:ANDROID_NDK_ROOT=$env:ANDROID_NDK_HOME
-powershell -ExecutionPolicy Bypass -File .\build-android.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Tools\publish.ps1 `
+    -Message "feat(audio): ..." -Version 0.3.0
 ```
 
-Le script vérifie le JDK 17, le NDK r23b, lance Unity en batchmode
-(`BuildScript.BuildAndroidDebug`), contrôle avec `aapt` qu'une **activité lançable**
-existe, puis calcule le SHA-256. Le premier build complet de cette livraison a pris
-**1246 s** (20 min 46 s) ; le rebuild final après les ajustements de la barre de
-boutons a pris **205 s** (relink incrémental).
+`publish.ps1` enchaîne : tests Core, bump `bundleVersion`/`AndroidBundleVersionCode`,
+`build-android.ps1`, commit, push, tag et release GitHub avec l'APK. Le build lui-même
+détecte le JDK 17 (`%LOCALAPPDATA%\Portable\jdk17`), le SDK
+(`%LOCALAPPDATA%\Portable\android-sdk`) et le NDK r23b
+(`...\ndk\23.1.7779620`), contrôle avec `aapt` qu'une **activité lançable** existe,
+puis calcule le SHA-256. Build complet de cette livraison : **955 s** (15 min 55 s).
 
 ### 8.2 Artefact
 
 | | |
 |---|---|
 | **Chemin** | `Builds/Android/colorflow-debug.apk` |
-| **Taille** | 47 948 058 octets (45,73 Mo) |
-| **SHA-256** | `0394C6807EA0D26785CFCEF957FA695F188D50EC962049209D74EC08733C16FD` |
+| **Taille** | 39 476 914 octets (37,65 Mo) |
+| **SHA-256** | `098A471B6F772C636E3B05CE61717C076877DDCD67A82247873B8CAEAE77108E` |
 | **Package** | `com.digitalholding.colorflow` |
-| **Version** | 0.2.0 — versionCode 3 |
+| **Version** | 0.3.0 — versionCode 5 |
 | **SDK** | minSdk 23, targetSdk 35, compileSdk 35 |
 | **ABI** | `arm64-v8a` + `armeabi-v7a` (IL2CPP) |
 | **Libellé** | Color Flow |
 | **Activité** | `com.unity3d.player.UnityPlayerActivity` (lanceable) |
+| **Permission** | `android.permission.VIBRATE` (haptique) |
 
 ### 8.3 Contenu vérifié
 
-- **3 scènes** : `assets/bin/Data/level0`, `level1`, `level2` (Boot, MainMenu,
-  Game) ;
-- **7 assets de niveaux** dans le build, dont `Level_Dino` (fichier
-  `assets/bin/Data/7c1e5b9a4d2f43a1b6c8d0e2f4a6b8c0`, 504 octets) : l'œuf de Pâques
-  est bien embarqué ;
-- `global-metadata.dat`, `ScriptingAssemblies.json` et les deux ABIs présents ;
-- icône adaptative `res/mipmap-anydpi-v26/app_icon.xml` déclarée ;
-- `aapt dump badging` confirme `launchable-activity`, donc l'APK s'installe avec
-  icône et bouton « Ouvrir ».
+- **3 scènes** dans l'APK : `assets/bin/Data/level0`, `level1`, `level2`
+  (Boot, MainMenu, Game) ;
+- `aapt dump badging` confirme `versionName=0.3.0`, `versionCode=5`,
+  `minSdkVersion=23`, `native-code: arm64-v8a, armeabi-v7a` et une
+  `launchable-activity` (icône + bouton « Ouvrir ») ;
+- la permission `VIBRATE` est présente, donc `Handheld.Vibrate()` fonctionne ;
+- l'audio est synthétisé à l'exécution : aucun `.wav`/`.mp3` dans l'APK.
 
 ### 8.4 Limite d'environnement
 
@@ -503,16 +505,16 @@ recette device.
 
 - **Pas de test sur device** dans cet environnement (voir 8.4) ; les perfs IL2CPP
   réelles et le ressenti tactile restent à valider.
-- **Version 0.2.0 / code 3 inchangés** : le build est un debug de livraison, pas un
-  build de release signé. Un passage en 0.3.0/0.4.0 avec keystore de release reste à
-  faire.
+- **Version 0.3.0 / code 5** : le build est un debug de livraison, pas un build de
+  release signé. Un build signé (keystore) reste à faire.
 - **Pas de gravité ni de cascades** : choix de lisibilité, mais le plateau peut
   paraître statique après quelques coups.
 - **Difficulté non réglée par playtest humain** : les niveaux Score 300 pts / 30 s
   peuvent être tendus ; l'équilibrage devra être ajusté sur device.
 - **Aide statique** : pas de solveur de coup, le hint se contente d'expliquer le
   geste.
-- **4 skins, français uniquement**, pas d'écran de réglages audio/haptique.
+- **4 skins, français uniquement**, pas d'écran de réglages audio/haptique (les
+  volumes sont fixés dans `AudioManager`).
 - **Accessibilité** : les spéciaux ont un symbole (bombe, barres, étoile) mais pas
   de mode daltonien dédié.
 
@@ -528,8 +530,9 @@ recette device.
    cascades/gravité en option.
 6. Localisation EN/FR et mode daltonien.
 
-**Conclusion** — Le hotfix 2.5 et le Sprint 4 sont livrés : UI ancrée dans l'aire
-sûre, boutique réactive et persistante, glisser-déposer complet, match-3 avec
-spéciaux, objectifs, chrono permanent, révélation de victoire et niveau secret. Les
-109 tests EditMode/Core et les 9 tests PlayMode passent, et l'APK debug de 45,73 Mo
-est généré et vérifié.
+**Conclusion** — Le hotfix 2.5, le Sprint 3 (juice/audio) et le Sprint 4 sont livrés :
+UI ancrée dans l'aire sûre, boutique réactive et persistante, glisser-déposer complet,
+match-3 avec spéciaux, objectifs, chrono permanent, révélation de victoire, niveau
+secret, retour haptique, SFX et musique 100 % synthétisés. Les 109 tests Core/EditMode
+et les 12 tests PlayMode passent, et l'APK debug 0.3.0 de 37,65 Mo est généré, publié
+en release `latest` et vérifié (`aapt`).
