@@ -79,8 +79,14 @@ if (-not $env:ANDROID_NDK_HOME -and $env:ANDROID_HOME) {
 
 # --- Authentification GitHub (avant toute chose couteuse) --------------------
 if (-not $DryRun) {
-    & $gh auth status 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) {
+    $authed = $false
+    try {
+        & $gh auth status 2>&1 | Out-Null
+        $authed = ($LASTEXITCODE -eq 0)
+    } catch {
+        $authed = $false
+    }
+    if (-not $authed) {
         Fail @"
 GitHub CLI n'est pas authentifie.
 Lancer une fois :  & "$gh" auth login --hostname github.com --git-protocol https --web
@@ -205,8 +211,17 @@ if (-not $notes) { $notes = "- Release $tag" }
 $title = "Color Flow $tag"
 $apkName = Split-Path -Leaf $apk
 
-& $gh release view $tag --json tagName 2>&1 | Out-Null
-if ($LASTEXITCODE -eq 0) {
+# `gh release view` ecrit sur stderr quand la release n'existe pas : avec
+# $ErrorActionPreference='Stop' cela devient une erreur terminante -> try/catch.
+$releaseExists = $false
+try {
+    & $gh release view $tag --json tagName 2>&1 | Out-Null
+    $releaseExists = ($LASTEXITCODE -eq 0)
+} catch {
+    $releaseExists = $false
+}
+
+if ($releaseExists) {
     Info "release existante : mise a jour"
     Run $gh @('release', 'upload', $tag, $apk, '--clobber')
     Run $gh @('release', 'edit', $tag, '--title', $title, '--notes', $notes, '--latest')
